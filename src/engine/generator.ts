@@ -4,6 +4,7 @@ import { join } from "node:path";
 import type { ProjectConfig } from "../config.js";
 import { getMarketplaceScopeSegments, getScriptDirectorySegments } from "../config.js";
 import { generateBpManifest, generateRpManifest } from "./manifests.js";
+import { getMinecraftDependencyVersions } from "./minecraft-package-versions.js";
 import {
     generateBlocksJson,
     generateDprintConfig,
@@ -138,9 +139,10 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
 
     const bpUuid = crypto.randomUUID();
     const rpUuid = crypto.randomUUID();
+    const versions = await getMinecraftDependencyVersions();
 
     const writes: Promise<void>[] = [
-        writeJsonFile(join(bpPath, "manifest.json"), generateBpManifest(config, bpUuid, rpUuid)),
+        writeJsonFile(join(bpPath, "manifest.json"), generateBpManifest(config, bpUuid, rpUuid, versions)),
         writeJsonFile(join(rpPath, "manifest.json"), generateRpManifest(config, rpUuid, bpUuid)),
         writeTextFile(join(bpPath, "texts", "en_US.lang"), generateLangFile(config.projectName, "behavior")),
         writeTextFile(join(rpPath, "texts", "en_US.lang"), generateLangFile(config.projectName, "resource")),
@@ -157,7 +159,7 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
     ];
 
     if (config.scripting !== "none") {
-        writes.push(writeJsonFile(join(destination, "package.json"), generatePackageJson(config)));
+        writes.push(writeJsonFile(join(destination, "package.json"), generatePackageJson(config, versions)));
     }
 
     if (config.scripting === "javascript") {

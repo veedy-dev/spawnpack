@@ -1,31 +1,31 @@
-import type { ProjectConfig } from "../config.js";
-import { VERSIONS, getMarketplaceScopeLabel, getScriptEntryPath } from "../config.js";
+import type { MinecraftDependencyVersions, ProjectConfig } from "../config.js";
+import { VERSIONS, getScriptEntryPath } from "../config.js";
 
 const PACK_VERSION = "1.0.0";
 
-function getSelectedScriptDependencies(config: ProjectConfig): Record<string, string> {
+function getSelectedScriptDependencies(config: ProjectConfig, versions: MinecraftDependencyVersions): Record<string, string> {
     const dependencies: Record<string, string> = {};
 
     if (config.scriptPackages.server) {
-        dependencies["@minecraft/server"] = VERSIONS.server;
+        dependencies["@minecraft/server"] = versions.server;
     }
 
     if (config.scriptPackages.serverUi) {
-        dependencies["@minecraft/server-ui"] = VERSIONS.serverUi;
+        dependencies["@minecraft/server-ui"] = versions.serverUi;
     }
 
     if (config.scriptPackages.vanillaData) {
-        dependencies["@minecraft/vanilla-data"] = VERSIONS.vanillaData;
+        dependencies["@minecraft/vanilla-data"] = versions.vanillaData;
     }
 
     if (config.scriptPackages.math) {
-        dependencies["@minecraft/math"] = VERSIONS.math;
+        dependencies["@minecraft/math"] = versions.math;
     }
 
     return dependencies;
 }
 
-export function generatePackageJson(config: ProjectConfig): Record<string, unknown> {
+export function generatePackageJson(config: ProjectConfig, versions: MinecraftDependencyVersions): Record<string, unknown> {
     const scripts: Record<string, string> = {};
 
     if (config.scripting === "typescript") {
@@ -47,7 +47,7 @@ export function generatePackageJson(config: ProjectConfig): Record<string, unkno
         private: true,
         type: "module",
         scripts,
-        dependencies: getSelectedScriptDependencies(config),
+        dependencies: getSelectedScriptDependencies(config, versions),
     };
 
     if (config.scripting === "typescript") {
@@ -194,21 +194,62 @@ dist/
 }
 
 export function generateReadme(config: ProjectConfig): string {
+    const scriptSource = config.scripting === "none"
+        ? "None"
+        : config.scripting === "typescript"
+            ? "data/scripts/main.ts"
+            : `packs/BP/${getScriptEntryPath(config)}`;
+    const runtimeEntry = config.scripting === "none" ? "None" : `packs/BP/${getScriptEntryPath(config)}`;
+    const installStep = config.scripting !== "none"
+        ? "1. Install dependencies with `bun install` or `npm install`."
+        : "1. No package install is required for this scaffold.";
+    const buildSteps = config.scripting === "none"
+        ? "2. Edit your BP/RP JSON files directly inside `packs/`."
+        : config.useRgl
+            ? "2. Run `rgl watch` while developing to rebuild and export your add-on automatically.\n3. Run `rgl run build` when you want a production build."
+            : config.scripting === "typescript"
+                ? "2. Write your gameplay scripts in `data/scripts/`.\n3. Run `bun run build` or `npm run build` to compile TypeScript into `packs/BP/scripts/`."
+                : "2. Write your gameplay scripts in `packs/BP/scripts/` and let Minecraft copy the pack into `com.mojang`.";
+    const aiSection = config.useAi
+        ? `## AI Tooling\n\nSpawnpack generated \`CLAUDE.md\` and \`.mcp.json\` for AI-assisted development.\n\nAdd your own API keys before using the MCP tools:\n\n- Exa dashboard: https://dashboard.exa.ai\n- Exa API key docs: https://exa.ai/docs/reference/team-management/create-api-key\n- Hyperbrowser signup: https://app.hyperbrowser.ai/signup\n- Hyperbrowser quickstart: https://hyperbrowser.ai/docs/quickstart\n\nUpdate the placeholder values in \`.mcp.json\` with your own tokens.\n\n`
+        : "";
+
     return `# ${config.projectName}
 
-Generated with Spawnpack.
+## Overview
 
-## Packs
-
-- Behavior Pack: packs/BP
-- Resource Pack: packs/RP
-- Marketplace structure: ${config.useMarketplaceStructure ? `${getMarketplaceScopeLabel(config)} nested content folders enabled` : "Disabled"}
-
-## Scripts
-
+- Behavior Pack: \`packs/BP\`
+- Resource Pack: \`packs/RP\`
 - Scripting: ${config.scripting}
-- Source: ${config.scripting === "none" ? "None" : config.scripting === "typescript" ? "data/scripts/main.ts" : `packs/BP/${getScriptEntryPath(config)}`}
-- Runtime entry: ${config.scripting === "none" ? "None" : `packs/BP/${getScriptEntryPath(config)}`}
+- Script source: ${scriptSource}
+- Runtime entry: ${runtimeEntry}
+
+## Getting Started
+
+${installStep}
+${buildSteps}
+
+## Working with Scripts
+
+${config.scripting === "none"
+        ? "This project was generated without Script API support. Add scripting later if you need gameplay logic."
+        : config.scripting === "typescript"
+            ? `- Write your TypeScript entrypoint in \`data/scripts/main.ts\`.\n- Add more TypeScript files anywhere under \`data/scripts/\` and import them from \`main.ts\`.\n- rgl compiles your TypeScript from \`data/scripts/\` into \`${runtimeEntry}\`.`
+            : `- Write your JavaScript entrypoint directly in \`${runtimeEntry}\`.\n- Add additional JavaScript files beside \`main.js\` and import them from there.\n- Minecraft copies the BP/RP content directly into \`com.mojang\`, so there is no TypeScript compile step.`}
+
+${config.useRgl
+        ? `## rgl Workflow
+
+- \`rgl watch\` rebuilds your scripts and exports your add-on while you work.
+- \`rgl run\` builds a development export once.
+- \`rgl run build\` creates a production-ready build.
+
+The generated \`config.json\` already points the script bundle to \`${runtimeEntry}\`.
+
+`
+        : ""}${aiSection}---
+
+<sub>Generated with Spawnpack</sub>
 `;
 }
 

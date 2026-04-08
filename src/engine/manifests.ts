@@ -1,6 +1,7 @@
 import {
     type ManifestDependency,
     type ManifestModule,
+    type MinecraftDependencyVersions,
     type PackManifest,
     type ProjectConfig,
     VERSIONS,
@@ -13,23 +14,23 @@ function getAuthors(author: string): string[] {
     return author.trim() === "" ? [] : [author];
 }
 
-function getScriptDependencies(config: ProjectConfig): ManifestDependency[] {
+function getScriptDependencies(config: ProjectConfig, versions: MinecraftDependencyVersions): ManifestDependency[] {
     const dependencies: ManifestDependency[] = [];
 
     if (config.scriptPackages.server) {
-        dependencies.push({ module_name: "@minecraft/server", version: VERSIONS.server });
+        dependencies.push({ module_name: "@minecraft/server", version: versions.server });
     }
 
     if (config.scriptPackages.serverUi) {
-        dependencies.push({ module_name: "@minecraft/server-ui", version: VERSIONS.serverUi });
+        dependencies.push({ module_name: "@minecraft/server-ui", version: versions.serverUi });
     }
 
     if (config.scriptPackages.vanillaData) {
-        dependencies.push({ module_name: "@minecraft/vanilla-data", version: VERSIONS.vanillaData });
+        dependencies.push({ module_name: "@minecraft/vanilla-data", version: versions.vanillaData });
     }
 
     if (config.scriptPackages.math) {
-        dependencies.push({ module_name: "@minecraft/math", version: VERSIONS.math });
+        dependencies.push({ module_name: "@minecraft/math", version: versions.math });
     }
 
     return dependencies;
@@ -51,11 +52,11 @@ function getBpModules(config: ProjectConfig): ManifestModule[] {
     return modules;
 }
 
-export function generateBpManifest(config: ProjectConfig, bpUuid: string, rpUuid: string): PackManifest {
+export function generateBpManifest(config: ProjectConfig, bpUuid: string, rpUuid: string, versions: MinecraftDependencyVersions): PackManifest {
     const dependencies: ManifestDependency[] = [{ uuid: rpUuid, version: PACK_VERSION }];
 
     if (config.scripting !== "none") {
-        dependencies.push(...getScriptDependencies(config));
+        dependencies.push(...getScriptDependencies(config, versions));
     }
 
     return {

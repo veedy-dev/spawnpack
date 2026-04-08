@@ -56,15 +56,25 @@ export interface PackManifest {
     dependencies: ManifestDependency[];
 }
 
+export interface MinecraftDependencyVersions {
+    server: string;
+    serverUi: string;
+    vanillaData: string;
+    math: string;
+}
+
 export const VERSIONS = {
     minEngineVersion: [1, 26, 0] as [number, number, number],
     manifestFormat: 2,
+    esbuildFilter: "0.3.0",
+} as const;
+
+export const DEFAULT_MINECRAFT_DEPENDENCY_VERSIONS: MinecraftDependencyVersions = {
     server: "2.6.0",
     serverUi: "2.0.0",
     vanillaData: "1.26.13",
     math: "2.4.0",
-    esbuildFilter: "0.3.0",
-} as const;
+};
 
 export const DEFAULT_SCRIPT_PACKAGES: ScriptPackages = {
     server: true,
