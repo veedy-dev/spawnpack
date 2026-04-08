@@ -18,9 +18,8 @@
         "noEmit": true,
         "outDir": "dist",
         "rootDir": "src",
-        "jsx": "react-jsx",
-        "types": ["bun-types", "react", "react-dom"]
+        "types": ["bun-types"]
     },
-    "include": ["src/**/*.ts", "src/**/*.tsx"],
+    "include": ["src/**/*.ts"],
     "exclude": ["node_modules", "dist"]
 }

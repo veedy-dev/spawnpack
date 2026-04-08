@@ -1,6 +1,21 @@
 import { log } from "@clack/prompts";
 import pc from "picocolors";
-import type { ProjectConfig, ScriptingChoice } from "../config.js";
+import {
+    getMarketplaceScopeLabel,
+    type ProjectConfig,
+    type ScriptPackages,
+    type ScriptingChoice,
+} from "../config.js";
+
+const teal = (value: string): string => `\x1b[38;2;47;208;181m${value}\x1b[39m`;
+
+function bgTeal(value: string): string {
+    return `\x1b[48;2;47;208;181m${value}\x1b[49m`;
+}
+
+function whiteOnTeal(value: string): string {
+    return bgTeal(`\x1b[97m${value}\x1b[39m`);
+}
 
 function getScriptingLabel(choice: ScriptingChoice): string {
     if (choice === "typescript") {
@@ -14,26 +29,22 @@ function getScriptingLabel(choice: ScriptingChoice): string {
     return "None";
 }
 
-function getSelectedPackages(config: ProjectConfig): string[] {
-    if (config.scripting === "none") {
-        return [];
-    }
-
+function getSelectedPackages(scriptPackages: ScriptPackages): string[] {
     const packages: string[] = [];
 
-    if (config.scriptPackages.server) {
+    if (scriptPackages.server) {
         packages.push("@minecraft/server");
     }
 
-    if (config.scriptPackages.serverUi) {
+    if (scriptPackages.serverUi) {
         packages.push("@minecraft/server-ui");
     }
 
-    if (config.scriptPackages.vanillaData) {
+    if (scriptPackages.vanillaData) {
         packages.push("@minecraft/vanilla-data");
     }
 
-    if (config.scriptPackages.math) {
+    if (scriptPackages.math) {
         packages.push("@minecraft/math");
     }
 
@@ -49,54 +60,105 @@ function formatToggle(enabled: boolean): string {
 }
 
 function padLabel(label: string): string {
-    return label.padEnd(12, " ");
+    return label.padEnd(22, " ");
 }
 
 function getTreeRoot(config: ProjectConfig): string {
     const destination = config.destination.trim();
 
     if (destination === "." || destination === "./") {
-        return config.projectName;
+        return ".";
     }
 
     return destination.replace(/[\\/]+$/, "");
 }
 
+function pushScopedFolder(lines: string[], prefix: string, folder: string, config: ProjectConfig): void {
+    lines.push(pc.dim(`${prefix}${folder}/`));
+
+    if (config.useMarketplaceStructure) {
+        lines.push(pc.dim(`${prefix}└─ ${getMarketplaceScopeLabel(config)}/`));
+    }
+}
+
 export function showFolderTree(config: ProjectConfig): string {
-    const lines = [pc.bold(pc.cyan(getTreeRoot(config)))];
+    const lines = [pc.bold(pc.white(getTreeRoot(config)))];
 
     lines.push(pc.dim("├─ packs/"));
     lines.push(pc.dim("│  ├─ BP/"));
-    lines.push(pc.dim("│  │  ├─ entities/"));
-    lines.push(pc.dim("│  │  ├─ items/"));
-    lines.push(pc.dim("│  │  ├─ blocks/"));
+    pushScopedFolder(lines, "│  │  ├─ ", "animation_controllers", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "animations", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "blocks", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "entities", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "items", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "loot_tables", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "recipes", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "spawn_rules", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "structures", config);
+    lines.push(pc.dim("│  │  ├─ texts/"));
+    pushScopedFolder(lines, "│  │  ├─ ", "trading", config);
 
-    if (config.scripting !== "none") {
+    if (config.scripting === "javascript" || (config.scripting === "typescript" && !config.useRgl)) {
         lines.push(pc.dim(`│  │  ├─ scripts/${config.namespace}/${config.projectId}/`));
     }
 
-    lines.push(pc.dim("│  │  ├─ texts/"));
     lines.push(pc.dim("│  │  └─ manifest.json"));
     lines.push(pc.dim("│  └─ RP/"));
-    lines.push(pc.dim("│     ├─ entity/"));
-    lines.push(pc.dim("│     ├─ models/"));
-    lines.push(pc.dim("│     ├─ textures/"));
-    lines.push(pc.dim("│     ├─ sounds/"));
+    pushScopedFolder(lines, "│     ├─ ", "animation_controllers", config);
+    pushScopedFolder(lines, "│     ├─ ", "animations", config);
+    pushScopedFolder(lines, "│     ├─ ", "attachables", config);
+    pushScopedFolder(lines, "│     ├─ ", "entity", config);
+    pushScopedFolder(lines, "│     ├─ ", "fogs", config);
+    lines.push(pc.dim("│     ├─ models/entity/"));
+
+    if (config.useMarketplaceStructure) {
+        lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
+    }
+
+    pushScopedFolder(lines, "│     ├─ ", "particles", config);
+    pushScopedFolder(lines, "│     ├─ ", "render_controllers", config);
+    pushScopedFolder(lines, "│     ├─ ", "sounds", config);
+    lines.push(pc.dim("│     ├─ texts/"));
+    lines.push(pc.dim("│     ├─ textures/blocks/"));
+
+    if (config.useMarketplaceStructure) {
+        lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
+    }
+
+    lines.push(pc.dim("│     ├─ textures/entity/"));
+
+    if (config.useMarketplaceStructure) {
+        lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
+    }
+
+    lines.push(pc.dim("│     ├─ textures/items/"));
+
+    if (config.useMarketplaceStructure) {
+        lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
+    }
+
+    pushScopedFolder(lines, "│     ├─ ", "ui", config);
+    lines.push(pc.dim("│     ├─ blocks.json"));
+    lines.push(pc.dim("│     ├─ sounds.json"));
+    lines.push(pc.dim("│     ├─ sound_definitions.json"));
+    lines.push(pc.dim("│     ├─ item_texture.json"));
+    lines.push(pc.dim("│     ├─ terrain_texture.json"));
+    lines.push(pc.dim("│     ├─ flipbook_textures.json"));
     lines.push(pc.dim("│     └─ manifest.json"));
 
     if (config.scripting === "typescript") {
-        lines.push(pc.dim("├─ data/"));
-        lines.push(pc.dim("│  └─ scripts/"));
-        lines.push(pc.dim("│     └─ main.ts"));
+        lines.push(pc.dim("├─ data/scripts/"));
+        lines.push(pc.dim("│  └─ main.ts"));
+        lines.push(pc.dim("├─ tsconfig.json"));
+        lines.push(pc.dim("├─ dprint.json"));
+    }
+
+    if (config.scripting === "javascript") {
+        lines.push(pc.dim(`├─ packs/BP/scripts/${config.namespace}/${config.projectId}/main.js`));
     }
 
     if (config.scripting !== "none") {
         lines.push(pc.dim("├─ package.json"));
-    }
-
-    if (config.scripting === "typescript") {
-        lines.push(pc.dim("├─ tsconfig.json"));
-        lines.push(pc.dim("├─ dprint.json"));
     }
 
     if (config.useRgl) {
@@ -114,44 +176,53 @@ export function showFolderTree(config: ProjectConfig): string {
     return lines.join("\n");
 }
 
-export function showPreview(config: ProjectConfig): void {
-    const packages = getSelectedPackages(config);
-    const preview = [
-        pc.cyan("┌ Project Summary"),
-        pc.cyan("│"),
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Name:"))} ${formatValue(config.projectName)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Author:"))} ${config.author ? formatValue(config.author) : pc.dim("—")}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Namespace:"))} ${formatValue(config.namespace)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Identifier:"))} ${formatValue(config.identifier)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Project ID:"))} ${formatValue(config.projectId)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Destination:"))} ${formatValue(config.destination)}`,
-        pc.cyan("│"),
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Scripting:"))} ${formatValue(getScriptingLabel(config.scripting))}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Packages:"))} ${packages.length > 0 ? formatValue(packages.join(", ")) : pc.dim("None")}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("RGL:"))} ${formatToggle(config.useRgl)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("AI Setup:"))} ${formatToggle(config.useAi)}`,
-        `${pc.cyan("│")}  ${pc.dim(padLabel("Rockide:"))} ${formatToggle(config.installRockide)}`,
-        pc.cyan("│"),
-        `${pc.cyan("│")}  ${pc.yellow("Planned structure")}`,
-        ...showFolderTree(config).split("\n").map(line => `${pc.cyan("│")}  ${line}`),
-        pc.cyan("└"),
-    ].join("\n");
+export function showReview(config: ProjectConfig): void {
+    const border = teal("│");
+    const packages = config.scripting === "none"
+        ? pc.dim("None")
+        : getSelectedPackages(config.scriptPackages).length > 0
+            ? formatValue(getSelectedPackages(config.scriptPackages).join(", "))
+            : pc.dim("None");
 
-    log.message(preview, { symbol: pc.cyan("◆") });
+    const lines = [
+        `${whiteOnTeal(" Spawnpack ")} ${pc.dim("Review your Bedrock addon scaffold")}`,
+        "",
+        `${border}  ${pc.dim(padLabel("Project:"))} ${formatValue(config.projectName)}`,
+        `${border}  ${pc.dim(padLabel("Author:"))} ${config.author ? formatValue(config.author) : pc.dim("—")}`,
+        `${border}  ${pc.dim(padLabel("Namespace:"))} ${formatValue(config.namespace)}`,
+        `${border}  ${pc.dim(padLabel("Identifier:"))} ${formatValue(config.identifier)}`,
+        `${border}  ${pc.dim(padLabel("Project ID:"))} ${formatValue(config.projectId)}`,
+        `${border}  ${pc.dim(padLabel("Destination:"))} ${formatValue(config.destination)}`,
+        `${border}  ${pc.dim(padLabel("Marketplace structure:"))} ${config.useMarketplaceStructure ? formatValue(getMarketplaceScopeLabel(config)) : pc.dim("Disabled")}`,
+        `${border}  ${pc.dim(padLabel("Scripting:"))} ${formatValue(getScriptingLabel(config.scripting))}`,
+        `${border}  ${pc.dim(padLabel("Packages:"))} ${packages}`,
+        `${border}  ${pc.dim(padLabel("rgl:"))} ${formatToggle(config.useRgl)}`,
+        `${border}  ${pc.dim(padLabel("Rockide:"))} ${formatToggle(config.installRockide)}`,
+        `${border}  ${pc.dim(padLabel("AI Setup:"))} ${formatToggle(config.useAi)}`,
+        "",
+        `${border}  ${teal(pc.bold("Planned structure"))}`,
+        ...showFolderTree(config).split("\n").map(line => `${border}  ${line}`),
+    ];
+
+    log.message(lines.join("\n"), { symbol: teal("◆") });
 }
 
 export function showPostGeneration(config: ProjectConfig): void {
-    const nextSteps = [pc.bold(pc.green("Next steps:")), `  ${pc.cyan("cd")} ${formatValue(config.destination)}`];
+    const nextSteps = [teal(pc.bold("Next steps"))];
+
+    if (config.destination !== "." && config.destination !== "./") {
+        nextSteps.push(`  ${pc.cyan("cd")} ${formatValue(config.destination)}`);
+    }
 
     if (config.scripting !== "none") {
-        nextSteps.push(`  ${pc.cyan("bun install")}`);
+        nextSteps.push(`  ${pc.cyan("bun install")} ${pc.dim("or")} ${pc.cyan("npm install")} ${pc.dim("Install project dependencies")}`);
     }
 
     if (config.useRgl) {
-        nextSteps.push(`  ${pc.cyan("rgl watch")}`);
+        nextSteps.push(`  ${pc.cyan("rgl watch")} ${pc.dim("Watch files and rebuild/export while you work")}`);
     }
 
-    const usefulCommands = [pc.bold(pc.yellow("Useful commands:"))];
+    const usefulCommands = [teal(pc.bold("Useful commands"))];
 
     if (config.useRgl) {
         usefulCommands.push(`  ${pc.cyan("rgl run")} ${pc.dim("Build for development")}`);
@@ -159,18 +230,14 @@ export function showPostGeneration(config: ProjectConfig): void {
     }
 
     if (config.scripting === "typescript") {
-        usefulCommands.push(`  ${pc.cyan("bun run typecheck")} ${pc.dim("Check TypeScript types")}`);
-    }
-
-    if (config.scripting === "javascript" && !config.useRgl) {
-        usefulCommands.push(`  ${pc.dim("No additional scripting commands enabled")}`);
+        usefulCommands.push(`  ${pc.cyan("bun run typecheck")} ${pc.dim("or")} ${pc.cyan("npm run typecheck")} ${pc.dim("Check TypeScript types")}`);
     }
 
     if (config.scripting === "none" && !config.useRgl) {
-        usefulCommands.push(`  ${pc.dim("No build commands required for this scaffold")}`);
+        usefulCommands.push(`  ${pc.dim("No extra build commands needed for this scaffold")}`);
     }
 
     log.message([...nextSteps, "", ...usefulCommands].join("\n"), {
-        symbol: pc.green("▲"),
+        symbol: teal("▲"),
     });
 }
