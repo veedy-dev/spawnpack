@@ -1,13 +1,16 @@
-import { VERSIONS, type ManifestDependency, type ManifestModule, type PackManifest, type ProjectConfig } from "../config.js";
+import {
+    type ManifestDependency,
+    type ManifestModule,
+    type PackManifest,
+    type ProjectConfig,
+    VERSIONS,
+    getScriptEntryPath,
+} from "../config.js";
 
 const PACK_VERSION: [number, number, number] = [1, 0, 0];
 
 function getAuthors(author: string): string[] {
     return author.trim() === "" ? [] : [author];
-}
-
-function getScriptEntry(config: ProjectConfig): string {
-    return `scripts/${config.namespace}/${config.projectId}/main.js`;
 }
 
 function getScriptDependencies(config: ProjectConfig): ManifestDependency[] {
@@ -41,7 +44,7 @@ function getBpModules(config: ProjectConfig): ManifestModule[] {
             uuid: crypto.randomUUID(),
             version: PACK_VERSION,
             language: "javascript",
-            entry: getScriptEntry(config),
+            entry: getScriptEntryPath(config),
         });
     }
 

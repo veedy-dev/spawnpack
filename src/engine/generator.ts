@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 
 import type { ProjectConfig } from "../config.js";
+import { getMarketplaceScopeSegments, getScriptDirectorySegments } from "../config.js";
 import { generateBpManifest, generateRpManifest } from "./manifests.js";
 import {
     generateBlocksJson,
@@ -20,6 +21,38 @@ import {
     generateTsConfig,
 } from "./templates.js";
 
+const BP_NAMESPACED_DIRECTORIES = [
+    "animation_controllers",
+    "animations",
+    "blocks",
+    "entities",
+    "items",
+    "loot_tables",
+    "recipes",
+    "spawn_rules",
+    "structures",
+    "trading",
+] as const;
+
+const RP_NAMESPACED_DIRECTORIES = [
+    "animation_controllers",
+    "animations",
+    "attachables",
+    "entity",
+    "fogs",
+    "particles",
+    "render_controllers",
+    "sounds",
+    "ui",
+] as const;
+
+const RP_NAMESPACED_NESTED_DIRECTORIES = [
+    ["models", "entity"],
+    ["textures", "blocks"],
+    ["textures", "entity"],
+    ["textures", "items"],
+] as const;
+
 function stringifyJson(value: unknown): string {
     return `${JSON.stringify(value, null, 4)}\n`;
 }
@@ -32,11 +65,19 @@ async function writeTextFile(filePath: string, value: string): Promise<void> {
     await writeFile(filePath, value, "utf8");
 }
 
+function getScopedContentDirectory(basePath: string, folder: string, config: ProjectConfig): string {
+    return join(basePath, folder, ...getMarketplaceScopeSegments(config));
+}
+
+function getScopedNestedContentDirectory(basePath: string, segments: readonly string[], config: ProjectConfig): string {
+    return join(basePath, ...segments, ...getMarketplaceScopeSegments(config));
+}
+
 export async function generateProject(config: ProjectConfig): Promise<void> {
     const destination = config.destination;
     const bpPath = join(destination, "packs", "BP");
     const rpPath = join(destination, "packs", "RP");
-    const bpScriptPath = join(bpPath, "scripts", config.namespace, config.projectId);
+    const bpScriptPath = join(bpPath, ...getScriptDirectorySegments(config));
     const dataScriptsPath = join(destination, "data", "scripts");
 
     const directories = [
@@ -73,12 +114,24 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
         join(rpPath, "ui"),
     ];
 
-    if (config.scripting !== "none") {
+    if (config.useMarketplaceStructure) {
+        directories.push(
+            ...BP_NAMESPACED_DIRECTORIES.map(folder => getScopedContentDirectory(bpPath, folder, config)),
+            ...RP_NAMESPACED_DIRECTORIES.map(folder => getScopedContentDirectory(rpPath, folder, config)),
+            ...RP_NAMESPACED_NESTED_DIRECTORIES.map(segments => getScopedNestedContentDirectory(rpPath, segments, config)),
+        );
+    }
+
+    if (config.scripting === "javascript") {
         directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.namespace), bpScriptPath);
     }
 
     if (config.scripting === "typescript") {
         directories.push(join(destination, "data"), dataScriptsPath);
+
+        if (!config.useRgl) {
+            directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.namespace), bpScriptPath);
+        }
     }
 
     await Promise.all(directories.map(directory => mkdir(directory, { recursive: true })));

@@ -7,6 +7,7 @@ export interface ProjectConfig {
     destination: string;
     scripting: ScriptingChoice;
     scriptPackages: ScriptPackages;
+    useMarketplaceStructure: boolean;
     useRgl: boolean;
     useAi: boolean;
     installRockide: boolean;
@@ -58,10 +59,10 @@ export interface PackManifest {
 export const VERSIONS = {
     minEngineVersion: [1, 26, 0] as [number, number, number],
     manifestFormat: 2,
-    server: "2.5.0",
+    server: "2.6.0",
     serverUi: "2.0.0",
-    vanillaData: "1.26.0-beta.1.21.80-stable",
-    math: "1.5.0",
+    vanillaData: "1.26.13",
+    math: "2.4.0",
     esbuildFilter: "0.3.0",
 } as const;
 
@@ -95,4 +96,20 @@ export function sanitizeIdentifier(name: string): string {
         .replace(/[^a-z0-9_-]/g, "_")
         .replace(/_+/g, "_")
         .replace(/^_|_$/g, "");
+}
+
+export function getMarketplaceScopeSegments(config: Pick<ProjectConfig, "namespace" | "projectId" | "useMarketplaceStructure">): string[] {
+    return config.useMarketplaceStructure ? [config.namespace, config.projectId] : [];
+}
+
+export function getMarketplaceScopeLabel(config: Pick<ProjectConfig, "namespace" | "projectId">): string {
+    return `${config.namespace}/${config.projectId}`;
+}
+
+export function getScriptDirectorySegments(config: Pick<ProjectConfig, "namespace" | "projectId">): string[] {
+    return ["scripts", config.namespace, config.projectId];
+}
+
+export function getScriptEntryPath(config: Pick<ProjectConfig, "namespace" | "projectId">): string {
+    return [...getScriptDirectorySegments(config), "main.js"].join("/");
 }

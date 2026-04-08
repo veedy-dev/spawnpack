@@ -1,4 +1,5 @@
-import { VERSIONS, type ProjectConfig } from "../config.js";
+import type { ProjectConfig } from "../config.js";
+import { VERSIONS, getMarketplaceScopeLabel, getScriptEntryPath } from "../config.js";
 
 const PACK_VERSION = "1.0.0";
 
@@ -28,7 +29,10 @@ export function generatePackageJson(config: ProjectConfig): Record<string, unkno
     const scripts: Record<string, string> = {};
 
     if (config.scripting === "typescript") {
-        scripts.build = "tsc --project tsconfig.json";
+        if (!config.useRgl) {
+            scripts.build = "tsc --project tsconfig.json";
+        }
+
         scripts.typecheck = "tsc --project tsconfig.json --noEmit";
         scripts.format = "dprint fmt";
     }
@@ -57,25 +61,32 @@ export function generatePackageJson(config: ProjectConfig): Record<string, unkno
 }
 
 export function generateTsConfig(config: ProjectConfig): Record<string, unknown> {
+    const compilerOptions: Record<string, unknown> = {
+        target: "ES2020",
+        module: "ES2020",
+        moduleResolution: "bundler",
+        strict: true,
+        noImplicitAny: true,
+        strictNullChecks: true,
+        noImplicitReturns: true,
+        noFallthroughCasesInSwitch: true,
+        noUnusedLocals: true,
+        noUnusedParameters: true,
+        isolatedModules: true,
+        skipLibCheck: true,
+        forceConsistentCasingInFileNames: true,
+        rootDir: "data/scripts",
+        types: [],
+    };
+
+    if (config.useRgl) {
+        compilerOptions.noEmit = true;
+    } else {
+        compilerOptions.outDir = `packs/BP/${getScriptEntryPath(config).replace(/\/main\.js$/, "")}`;
+    }
+
     return {
-        compilerOptions: {
-            target: "ES2020",
-            module: "ES2020",
-            moduleResolution: "bundler",
-            strict: true,
-            noImplicitAny: true,
-            strictNullChecks: true,
-            noImplicitReturns: true,
-            noFallthroughCasesInSwitch: true,
-            noUnusedLocals: true,
-            noUnusedParameters: true,
-            isolatedModules: true,
-            skipLibCheck: true,
-            forceConsistentCasingInFileNames: true,
-            rootDir: "data/scripts",
-            outDir: `packs/BP/scripts/${config.namespace}/${config.projectId}`,
-            types: [],
-        },
+        compilerOptions,
         include: ["data/scripts/**/*.ts"],
     };
 }
@@ -91,10 +102,7 @@ export function generateDprintConfig(): Record<string, unknown> {
             "module.sortImportDeclarations": "caseSensitive",
             "importDeclaration.sortNamedImports": "caseSensitive",
         },
-        excludes: [
-            "**/node_modules",
-            "**/*-lock.json",
-        ],
+        excludes: ["**/node_modules", "**/*-lock.json"],
         plugins: [
             "https://plugins.dprint.dev/typescript-0.95.12.wasm",
             "https://plugins.dprint.dev/json-0.21.0.wasm",
@@ -127,6 +135,7 @@ export function generateRglConfig(config: ProjectConfig): Record<string, unknown
                         {
                             filter: "esbuild",
                             settings: {
+                                outfile: `./BP/${getScriptEntryPath(config)}`,
                                 sourcemap: true,
                                 minify: false,
                             },
@@ -139,6 +148,7 @@ export function generateRglConfig(config: ProjectConfig): Record<string, unknown
                         {
                             filter: "esbuild",
                             settings: {
+                                outfile: `./BP/${getScriptEntryPath(config)}`,
                                 minify: true,
                             },
                         },
@@ -192,11 +202,13 @@ Generated with Spawnpack.
 
 - Behavior Pack: packs/BP
 - Resource Pack: packs/RP
+- Marketplace structure: ${config.useMarketplaceStructure ? `${getMarketplaceScopeLabel(config)} nested content folders enabled` : "Disabled"}
 
 ## Scripts
 
 - Scripting: ${config.scripting}
-- Entry: scripts/${config.namespace}/${config.projectId}/main.js
+- Source: ${config.scripting === "none" ? "None" : config.scripting === "typescript" ? "data/scripts/main.ts" : `packs/BP/${getScriptEntryPath(config)}`}
+- Runtime entry: ${config.scripting === "none" ? "None" : `packs/BP/${getScriptEntryPath(config)}`}
 `;
 }
 
