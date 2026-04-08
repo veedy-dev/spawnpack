@@ -22,3 +22,8 @@ bun.lockb
 
 # Test output
 test-output/
+
+# Local agent context
+.serena/
+.sisyphus/
+CLAUDE.md
