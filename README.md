@@ -1,25 +1,38 @@
 # Spawnpack
 
-A modern interactive CLI tool for scaffolding Minecraft Bedrock addon projects. Built with TypeScript and Bun.
+Spawnpack is a Bun-powered CLI for scaffolding Minecraft Bedrock add-on projects with a guided terminal wizard.
 
-## Overview
+It generates BP/RP structure, optional Script API setup, optional rgl integration, marketplace-ready namespaced content folders, and optional AI tooling files.
 
-Spawnpack generates production-ready Minecraft Bedrock addon project structures with:
-- **Behavior Pack & Resource Pack** scaffold matching Marketplace guidelines
-- **Script API setup** — JavaScript or TypeScript with `@minecraft/server`
-- **RGL (Regolith in Rust)** build tooling integration
-- **AI configuration** — CLAUDE.md and MCP server setup for AI-assisted development
-- **Rockide** VSCode extension installation prompt
+## Features
+
+- Inline wizard built with `@clack/prompts`
+- Behavior Pack and Resource Pack scaffold
+- Scripting options: None, JavaScript, TypeScript
+- Optional packages:
+  - `@minecraft/server`
+  - `@minecraft/server-ui`
+  - `@minecraft/vanilla-data`
+  - `@minecraft/math`
+- Optional `rgl` setup for faster Bedrock builds
+- Optional marketplace add-on structure using nested `namespace/projectId` folders in BP/RP content directories
+- Optional AI setup:
+  - `CLAUDE.md`
+  - `.mcp.json`
+- Optional Rockide recommendation during setup
 
 ## Install
 
+### Bun
+
 ```bash
-bun install -g spawnpack
+bun add -g spawnpack
 ```
 
-Or run directly:
+### Run locally
 
 ```bash
+bun install
 bun run src/index.ts
 ```
 
@@ -29,53 +42,71 @@ bun run src/index.ts
 spawnpack
 ```
 
-The interactive wizard will guide you through:
+The wizard walks through:
 1. Project name and author
-2. Namespace and project ID
-3. Scripting choice (None / JavaScript / TypeScript)
-4. Optional packages (`@minecraft/server`, `@minecraft/server-ui`, `@minecraft/vanilla-data`, `@minecraft/math`)
-5. RGL build tooling toggle
-6. AI setup (CLAUDE.md + MCP servers)
-7. Rockide VSCode extension
+2. Namespace, addon identifier, and project ID
+3. Destination folder
+4. Marketplace add-on structure toggle
+5. Scripting mode
+6. Script packages
+7. `rgl` toggle
+8. Rockide toggle
+9. AI setup toggle
+10. Review screen and generation
 
-## Generated Structure
+## Generated project options
 
+Depending on your choices, Spawnpack can generate:
+
+- `packs/BP`
+- `packs/RP`
+- `data/scripts/main.ts`
+- `packs/BP/scripts/<namespace>/<projectId>/main.js`
+- `package.json`
+- `tsconfig.json`
+- `dprint.json`
+- `config.json` for `rgl`
+- `CLAUDE.md`
+- `.mcp.json`
+
+## Marketplace structure mode
+
+When enabled, Spawnpack creates marketplace-style nested folders under many BP/RP content directories.
+
+Example:
+
+```text
+packs/BP/animation_controllers/publisher/sample/
+packs/BP/entities/publisher/sample/
+packs/RP/animation_controllers/publisher/sample/
+packs/RP/textures/items/publisher/sample/
 ```
-project/
-├── packs/
-│   ├── BP/
-│   │   ├── manifest.json
-│   │   ├── texts/
-│   │   ├── entities/, items/, blocks/, ...
-│   │   └── scripts/<namespace>/<projectId>/
-│   └── RP/
-│       ├── manifest.json
-│       ├── texts/
-│       ├── textures/, models/, sounds/, ...
-├── package.json        (if scripting enabled)
-├── tsconfig.json       (if TypeScript)
-├── dprint.json         (if TypeScript)
-├── config.json         (if RGL enabled)
-├── CLAUDE.md           (if AI enabled)
-└── .mcp.json           (if AI enabled)
+
+This helps multiple add-ons coexist more safely in the same world by reducing content path collisions.
+
+## Script dependency versions
+
+Spawnpack currently generates these stable package versions by default:
+
+- `@minecraft/server` `2.6.0`
+- `@minecraft/server-ui` `2.0.0`
+- `@minecraft/vanilla-data` `1.26.13`
+- `@minecraft/math` `2.4.0`
+
+## Development
+
+```bash
+bun install
+bun run typecheck
+bun run build
 ```
 
-## AI Setup
+## Publish notes
 
-When AI setup is enabled, Spawnpack generates:
+The npm package is configured to publish only:
 
-- **`CLAUDE.md`** — Project-specific rules and context for AI coding assistants
-- **`.mcp.json`** — MCP server configuration with:
-  - `exa` — Web and GitHub code search
-  - `hyperbrowser` — Browser automation
-  - `sequential-thinking` — Chain-of-thought reasoning
-  - `serena` — LSP-based code intelligence
-  - `grep_app` — GitHub repository search
-  - `context7` — Library documentation lookup
+- `dist/`
+- `README.md`
+- `package.json`
 
-## Tech Stack
-
-- **Runtime**: Bun
-- **Language**: TypeScript (strict mode)
-- **TUI**: `@clack/prompts`
-- **Styling**: `picocolors`
+Internal planning files, Serena state, and local AI/project notes are excluded from the published tarball.

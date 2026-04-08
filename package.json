@@ -4,13 +4,40 @@
     "description": "Minecraft Bedrock addon project generator — scaffold your BP+RP in seconds",
     "type": "module",
     "bin": {
-        "spawnpack": "./src/index.ts"
+        "spawnpack": "./dist/spawnpack.js"
+    },
+    "files": [
+        "dist/spawnpack.js",
+        "README.md",
+        "package.json"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/veedy-dev/spawnpack.git"
+    },
+    "bugs": {
+        "url": "https://github.com/veedy-dev/spawnpack/issues"
+    },
+    "homepage": "https://github.com/veedy-dev/spawnpack#readme",
+    "keywords": [
+        "minecraft",
+        "bedrock",
+        "addon",
+        "generator",
+        "cli",
+        "spawnpack",
+        "regolith",
+        "rgl"
+    ],
+    "engines": {
+        "bun": ">=1.2.0"
     },
     "scripts": {
         "start": "bun run src/index.ts",
         "dev": "bun --watch src/index.ts",
         "build": "bun build src/index.ts --outfile dist/spawnpack.js --target node",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "prepack": "bun run typecheck && bun run build"
     },
     "dependencies": {
         "@clack/prompts": "^1.2.0",
