@@ -1,0 +1,98 @@
+export interface ProjectConfig {
+    projectName: string;
+    author: string;
+    namespace: string;
+    projectId: string;
+    identifier: string;
+    destination: string;
+    scripting: ScriptingChoice;
+    scriptPackages: ScriptPackages;
+    useRgl: boolean;
+    useAi: boolean;
+    installRockide: boolean;
+}
+
+export type ScriptingChoice = "none" | "javascript" | "typescript";
+
+export interface ScriptPackages {
+    server: boolean;
+    serverUi: boolean;
+    vanillaData: boolean;
+    math: boolean;
+}
+
+export interface ManifestModule {
+    type: string;
+    uuid: string;
+    version: [number, number, number];
+    description?: string;
+    language?: string;
+    entry?: string;
+}
+
+export interface ManifestDependency {
+    uuid?: string;
+    module_name?: string;
+    version: string | [number, number, number];
+}
+
+export interface PackManifest {
+    format_version: number;
+    metadata: {
+        authors: string[];
+        product_type: string;
+    };
+    header: {
+        name: string;
+        description: string;
+        pack_scope: string;
+        uuid: string;
+        version: [number, number, number];
+        min_engine_version: [number, number, number];
+    };
+    capabilities: string[];
+    modules: ManifestModule[];
+    dependencies: ManifestDependency[];
+}
+
+export const VERSIONS = {
+    minEngineVersion: [1, 26, 0] as [number, number, number],
+    manifestFormat: 2,
+    server: "2.5.0",
+    serverUi: "2.0.0",
+    vanillaData: "1.26.0-beta.1.21.80-stable",
+    math: "1.5.0",
+    esbuildFilter: "0.3.0",
+} as const;
+
+export const DEFAULT_SCRIPT_PACKAGES: ScriptPackages = {
+    server: true,
+    serverUi: false,
+    vanillaData: false,
+    math: false,
+};
+
+export function generateProjectId(projectName: string): string {
+    const words = projectName
+        .trim()
+        .split(/[\s_-]+/)
+        .filter(w => w.length > 0);
+
+    if (words.length === 1) {
+        return words[0].slice(0, 3).toLowerCase();
+    }
+
+    return words
+        .map(w => w[0])
+        .join("")
+        .toLowerCase()
+        .slice(0, 4);
+}
+
+export function sanitizeIdentifier(name: string): string {
+    return name
+        .toLowerCase()
+        .replace(/[^a-z0-9_-]/g, "_")
+        .replace(/_+/g, "_")
+        .replace(/^_|_$/g, "");
+}

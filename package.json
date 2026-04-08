@@ -1,0 +1,28 @@
+{
+    "name": "spawnpack",
+    "version": "0.1.0",
+    "description": "Minecraft Bedrock addon project generator — scaffold your BP+RP in seconds",
+    "type": "module",
+    "bin": {
+        "spawnpack": "./src/index.ts"
+    },
+    "scripts": {
+        "start": "bun run src/index.ts",
+        "dev": "bun --watch src/index.ts",
+        "build": "bun build src/index.ts --outfile dist/spawnpack.js --target node",
+        "typecheck": "tsc --noEmit"
+    },
+    "dependencies": {
+        "@clack/prompts": "^0.10.0",
+        "@semos-labs/glyph": "^0.2.10",
+        "picocolors": "^1.1.1",
+        "react": "^19.2.4",
+        "react-dom": "^19.2.4"
+    },
+    "devDependencies": {
+        "@types/bun": "^1.2.0",
+        "@types/react": "^19.2.14",
+        "@types/react-dom": "^19.2.3",
+        "typescript": "^5.7.0"
+    }
+}
