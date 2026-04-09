@@ -74,6 +74,10 @@ function getScopedNestedContentDirectory(basePath: string, segments: readonly st
     return join(basePath, ...segments, ...getMarketplaceScopeSegments(config));
 }
 
+function shouldCreateDirectory(directory: string): boolean {
+    return directory !== "." && directory !== "./" && directory !== ".\\";
+}
+
 export async function generateProject(config: ProjectConfig): Promise<void> {
     const destination = config.destination;
     const bpPath = join(destination, "packs", "BP");
@@ -135,7 +139,11 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
         }
     }
 
-    await Promise.all(directories.map(directory => mkdir(directory, { recursive: true })));
+    await Promise.all(
+        directories
+            .filter(shouldCreateDirectory)
+            .map(directory => mkdir(directory, { recursive: true })),
+    );
 
     const bpUuid = crypto.randomUUID();
     const rpUuid = crypto.randomUUID();

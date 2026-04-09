@@ -73,11 +73,17 @@ function getTreeRoot(config: ProjectConfig): string {
     return destination.replace(/[\\/]+$/, "");
 }
 
-function pushScopedFolder(lines: string[], prefix: string, folder: string, config: ProjectConfig): void {
-    lines.push(pc.dim(`${prefix}${folder}/`));
+function pushScopedFolder(
+    lines: string[],
+    folderPrefix: string,
+    scopePrefix: string,
+    folder: string,
+    config: ProjectConfig,
+): void {
+    lines.push(pc.dim(`${folderPrefix}${folder}/`));
 
     if (config.useMarketplaceStructure) {
-        lines.push(pc.dim(`${prefix}└─ ${getMarketplaceScopeLabel(config)}/`));
+        lines.push(pc.dim(`${scopePrefix}${getMarketplaceScopeLabel(config)}/`));
     }
 }
 
@@ -86,38 +92,38 @@ export function showFolderTree(config: ProjectConfig): string {
 
     lines.push(pc.dim("├─ packs/"));
     lines.push(pc.dim("│  ├─ BP/"));
-    pushScopedFolder(lines, "│  │  ├─ ", "animation_controllers", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "animations", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "blocks", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "entities", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "items", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "loot_tables", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "recipes", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "spawn_rules", config);
-    pushScopedFolder(lines, "│  │  ├─ ", "structures", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "animation_controllers", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "animations", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "blocks", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "entities", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "items", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "loot_tables", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "recipes", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "spawn_rules", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "structures", config);
     lines.push(pc.dim("│  │  ├─ texts/"));
-    pushScopedFolder(lines, "│  │  ├─ ", "trading", config);
+    pushScopedFolder(lines, "│  │  ├─ ", "│  │  │  └─ ", "trading", config);
 
     if (config.scripting === "javascript" || (config.scripting === "typescript" && !config.useRgl)) {
-        lines.push(pc.dim(`│  │  ├─ scripts/${config.namespace}/${config.projectId}/`));
+        lines.push(pc.dim(`│  │  ├─ scripts/${config.identifier}/${config.projectId}/`));
     }
 
     lines.push(pc.dim("│  │  └─ manifest.json"));
     lines.push(pc.dim("│  └─ RP/"));
-    pushScopedFolder(lines, "│     ├─ ", "animation_controllers", config);
-    pushScopedFolder(lines, "│     ├─ ", "animations", config);
-    pushScopedFolder(lines, "│     ├─ ", "attachables", config);
-    pushScopedFolder(lines, "│     ├─ ", "entity", config);
-    pushScopedFolder(lines, "│     ├─ ", "fogs", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "animation_controllers", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "animations", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "attachables", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "entity", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "fogs", config);
     lines.push(pc.dim("│     ├─ models/entity/"));
 
     if (config.useMarketplaceStructure) {
         lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
     }
 
-    pushScopedFolder(lines, "│     ├─ ", "particles", config);
-    pushScopedFolder(lines, "│     ├─ ", "render_controllers", config);
-    pushScopedFolder(lines, "│     ├─ ", "sounds", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "particles", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "render_controllers", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "sounds", config);
     lines.push(pc.dim("│     ├─ texts/"));
     lines.push(pc.dim("│     ├─ textures/blocks/"));
 
@@ -137,7 +143,7 @@ export function showFolderTree(config: ProjectConfig): string {
         lines.push(pc.dim(`│     │  └─ ${getMarketplaceScopeLabel(config)}/`));
     }
 
-    pushScopedFolder(lines, "│     ├─ ", "ui", config);
+    pushScopedFolder(lines, "│     ├─ ", "│     │  └─ ", "ui", config);
     lines.push(pc.dim("│     ├─ blocks.json"));
     lines.push(pc.dim("│     ├─ sounds.json"));
     lines.push(pc.dim("│     ├─ sound_definitions.json"));
@@ -154,7 +160,7 @@ export function showFolderTree(config: ProjectConfig): string {
     }
 
     if (config.scripting === "javascript") {
-        lines.push(pc.dim(`├─ packs/BP/scripts/${config.namespace}/${config.projectId}/main.js`));
+        lines.push(pc.dim(`├─ packs/BP/scripts/${config.identifier}/${config.projectId}/main.js`));
     }
 
     if (config.scripting !== "none") {
