@@ -42,7 +42,7 @@ export function generatePackageJson(config: ProjectConfig, versions: MinecraftDe
     }
 
     const packageJson: Record<string, unknown> = {
-        name: `${config.namespace}-${config.projectId}`,
+        name: `${config.identifier}-${config.projectId}`,
         version: PACK_VERSION,
         private: true,
         type: "module",
@@ -163,7 +163,7 @@ export function generateMainTs(config: ProjectConfig): string {
     return `import { world } from "@minecraft/server";
 
 world.afterEvents.worldLoad.subscribe(() => {
-    console.warn("[${config.namespace}:${config.identifier}] Addon loaded!");
+    console.warn("[${config.identifier}:${config.projectId}] Addon loaded!");
 });
 `;
 }
@@ -172,7 +172,7 @@ export function generateMainJs(config: ProjectConfig): string {
     return `import { world } from "@minecraft/server";
 
 world.afterEvents.worldLoad.subscribe(() => {
-    console.warn("[${config.namespace}:${config.identifier}] Addon loaded!");
+    console.warn("[${config.identifier}:${config.projectId}] Addon loaded!");
 });
 `;
 }
@@ -220,7 +220,7 @@ export function generateReadme(config: ProjectConfig): string {
 
 - Behavior Pack: \`packs/BP\`
 - Resource Pack: \`packs/RP\`
-- Scripting: ${config.scripting}
+- Script API setup: ${config.scripting}
 - Script source: ${scriptSource}
 - Runtime entry: ${runtimeEntry}
 
@@ -254,11 +254,11 @@ The generated \`config.json\` already points the script bundle to \`${runtimeEnt
 }
 
 export function generateBlocksJson(): Record<string, unknown> {
-    return {};
+    return { format_version: "1.21.40" };
 }
 
 export function generateSoundsJson(): Record<string, unknown> {
-    return {};
+    return { entity_sounds: {} };
 }
 
 export function generateSoundDefinitions(): Record<string, unknown> {

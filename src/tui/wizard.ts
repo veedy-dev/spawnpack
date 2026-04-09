@@ -11,6 +11,7 @@ import pc from "picocolors";
 import {
     DEFAULT_SCRIPT_PACKAGES,
     generateProjectId,
+    sanitizeIdentifier,
     type ProjectConfig,
     type ScriptPackages,
     type ScriptingChoice,
@@ -68,7 +69,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
     }
 
     const trimmedProjectName = projectName.trim();
-    const defaultNamespace = "sample";
     const suggestedProjectId = generateProjectId(trimmedProjectName);
 
     const author = await text({
@@ -80,31 +80,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         return abortWizard();
     }
 
-    const namespace = await text({
-        message: `${pc.bold("Namespace")} ${pc.dim("used in identifiers like namespace:item_name")}`,
-        placeholder: defaultNamespace,
-        initialValue: defaultNamespace,
-        validate(value) {
-            const trimmed = (value ?? "").trim();
-
-            if (trimmed.length === 0) {
-                return "Namespace is required.";
-            }
-
-            if (!/^[a-z0-9_]+$/.test(trimmed)) {
-                return "Use lowercase letters, numbers, and underscores only.";
-            }
-
-            return undefined;
-        },
-    });
-
-    if (isCancel(namespace)) {
-        return abortWizard();
-    }
-
-    const namespaceValue = namespace.trim();
-
     const useMarketplaceStructure = await confirm({
         message: `${pc.bold("Marketplace Add-On structure?")} ${pc.dim("Nest BP/RP content under publisher_id/project_id for better coexistence")}`,
         initialValue: false,
@@ -114,14 +89,59 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         return abortWizard();
     }
 
-    let identifierValue = namespaceValue;
+    const defaultPublisherId = sanitizeIdentifier(author.trim()) || sanitizeIdentifier(trimmedProjectName) || "sample";
+    let identifierValue = defaultPublisherId;
     let projectIdValue = suggestedProjectId;
 
-    if (useMarketplaceStructure) {
+    const destination = await text({
+        message: pc.bold("Destination folder"),
+        placeholder: ".",
+        initialValue: ".",
+        validate(value) {
+            const trimmed = (value ?? "").trim();
+
+            if (trimmed.length === 0) {
+                return "Destination folder is required.";
+            }
+
+            if (/[<>"|?*]/.test(trimmed)) {
+                return "Invalid characters in path (avoid < > \" | ? *).";
+            }
+
+            if (trimmed.length > 200) {
+                return "Path is too long (max 200 characters).";
+            }
+
+            return undefined;
+        },
+    });
+
+    if (isCancel(destination)) {
+        return abortWizard();
+    }
+
+    const scripting = await select<ScriptingChoice>({
+        message: pc.bold("Scripting API"),
+        initialValue: "typescript",
+        options: [
+            { value: "none", label: "None", hint: "manifest-only addon scaffold" },
+            { value: "javascript", label: "JavaScript", hint: "script entry with JS tooling" },
+            { value: "typescript", label: "TypeScript", hint: "recommended" },
+        ],
+    });
+
+    if (isCancel(scripting)) {
+        return abortWizard();
+    }
+
+    if (useMarketplaceStructure || scripting !== "none") {
+        const publisherHint = useMarketplaceStructure
+            ? "used for scoped folders like publisher_id/project_id"
+            : "used for script folders and package naming";
         const publisherId = await text({
-            message: `${pc.bold("Publisher ID")} ${pc.dim("used for scoped folders like publisher_id/project_id")}`,
-            placeholder: namespaceValue,
-            initialValue: namespaceValue,
+            message: `${pc.bold("Publisher ID")} ${pc.dim(publisherHint)}`,
+            placeholder: defaultPublisherId,
+            initialValue: defaultPublisherId,
             validate(value) {
                 const trimmed = (value ?? "").trim();
 
@@ -163,47 +183,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         }
 
         projectIdValue = projectId.trim();
-    }
-
-    const destination = await text({
-        message: pc.bold("Destination folder"),
-        placeholder: ".",
-        initialValue: ".",
-        validate(value) {
-            const trimmed = (value ?? "").trim();
-
-            if (trimmed.length === 0) {
-                return "Destination folder is required.";
-            }
-
-            if (/[<>"|?*]/.test(trimmed)) {
-                return "Invalid characters in path (avoid < > \" | ? *).";
-            }
-
-            if (trimmed.length > 200) {
-                return "Path is too long (max 200 characters).";
-            }
-
-            return undefined;
-        },
-    });
-
-    if (isCancel(destination)) {
-        return abortWizard();
-    }
-
-    const scripting = await select<ScriptingChoice>({
-        message: pc.bold("Scripting API"),
-        initialValue: "typescript",
-        options: [
-            { value: "none", label: "None", hint: "manifest-only addon scaffold" },
-            { value: "javascript", label: "JavaScript", hint: "script entry with JS tooling" },
-            { value: "typescript", label: "TypeScript", hint: "recommended" },
-        ],
-    });
-
-    if (isCancel(scripting)) {
-        return abortWizard();
     }
 
     let scriptPackages: ScriptPackages = { ...DEFAULT_SCRIPT_PACKAGES };
@@ -263,7 +242,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
     const config: ProjectConfig = {
         projectName: trimmedProjectName,
         author: author.trim(),
-        namespace: namespaceValue,
         identifier: identifierValue,
         projectId: projectIdValue,
         destination: destination.trim(),

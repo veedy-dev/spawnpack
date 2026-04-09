@@ -128,14 +128,14 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
     }
 
     if (config.scripting === "javascript") {
-        directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.namespace), bpScriptPath);
+        directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.identifier), bpScriptPath);
     }
 
     if (config.scripting === "typescript") {
         directories.push(join(destination, "data"), dataScriptsPath);
 
         if (!config.useRgl) {
-            directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.namespace), bpScriptPath);
+            directories.push(join(bpPath, "scripts"), join(bpPath, "scripts", config.identifier), bpScriptPath);
         }
     }
 

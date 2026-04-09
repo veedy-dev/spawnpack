@@ -195,7 +195,6 @@ export function showReview(config: ProjectConfig): void {
         "",
         `${border}  ${pc.dim(padLabel("Project:"))} ${formatValue(config.projectName)}`,
         `${border}  ${pc.dim(padLabel("Author:"))} ${config.author ? formatValue(config.author) : pc.dim("—")}`,
-        `${border}  ${pc.dim(padLabel("Namespace:"))} ${formatValue(config.namespace)}`,
         ...(config.useMarketplaceStructure
             ? [
                 `${border}  ${pc.dim(padLabel("Publisher ID:"))} ${formatValue(config.identifier)}`,

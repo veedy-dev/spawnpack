@@ -1,7 +1,6 @@
 export interface ProjectConfig {
     projectName: string;
     author: string;
-    namespace: string;
     projectId: string;
     identifier: string;
     destination: string;

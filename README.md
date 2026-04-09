@@ -71,10 +71,10 @@ spawnpack --version
 The wizard walks through:
 
 1. Project name and author
-2. Namespace, addon identifier, and project ID
+2. Marketplace add-on structure toggle
 3. Destination folder
-4. Marketplace add-on structure toggle
-5. Scripting mode
+4. Script API setup
+5. Publisher ID and Project ID when needed
 6. Script packages
 7. `rgl` toggle
 8. Rockide toggle
@@ -88,7 +88,7 @@ Depending on your choices, Spawnpack can generate:
 - `packs/BP`
 - `packs/RP`
 - `data/scripts/main.ts`
-- `packs/BP/scripts/<namespace>/<projectId>/main.js`
+- `packs/BP/scripts/<publisher-id>/<project-id>/main.js`
 - `package.json`
 - `tsconfig.json`
 - `dprint.json`
