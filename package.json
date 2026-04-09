@@ -1,6 +1,6 @@
 {
     "name": "spawnpack",
-    "version": "0.1.1",
+    "version": "0.1.2",
     "description": "Minecraft Bedrock addon project generator — scaffold your BP+RP in seconds",
     "author": "veedy-dev",
     "license": "MIT",
