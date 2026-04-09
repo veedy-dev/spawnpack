@@ -10,6 +10,7 @@
     },
     "files": [
         "dist/spawnpack.js",
+        "templates/CLAUDE.md",
         "README.md",
         "LICENSE",
         "package.json"

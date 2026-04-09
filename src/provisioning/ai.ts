@@ -11,10 +11,25 @@ const AI_EXCLUDE_LINES = [
     ".serena/",
 ];
 
-const CLAUDE_TEMPLATE_PATH = "D:\\Projects\\CLAUDE-md-rules\\minecraft-project\\CLAUDE_minecraft.md";
+const CLAUDE_TEMPLATE_URLS = [
+    new URL("../templates/CLAUDE.md", import.meta.url),
+    new URL("../../templates/CLAUDE.md", import.meta.url),
+];
 
 async function createClaudeMdContent(): Promise<string> {
-    return await Bun.file(CLAUDE_TEMPLATE_PATH).text();
+    for (const templateUrl of CLAUDE_TEMPLATE_URLS) {
+        const templateFile = Bun.file(templateUrl);
+        const exists = await templateFile.exists().then(
+            value => value,
+            () => false,
+        );
+
+        if (exists) {
+            return await templateFile.text();
+        }
+    }
+
+    return await Bun.file(CLAUDE_TEMPLATE_URLS[0]).text();
 }
 
 export async function generateClaudeMd(projectPath: string): Promise<void> {

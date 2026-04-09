@@ -27,3 +27,4 @@ test-output/
 .serena/
 .sisyphus/
 CLAUDE.md
+!templates/CLAUDE.md
