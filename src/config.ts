@@ -84,20 +84,7 @@ export const DEFAULT_SCRIPT_PACKAGES: ScriptPackages = {
 };
 
 export function generateProjectId(projectName: string): string {
-    const words = projectName
-        .trim()
-        .split(/[\s_-]+/)
-        .filter(w => w.length > 0);
-
-    if (words.length === 1) {
-        return words[0].slice(0, 3).toLowerCase();
-    }
-
-    return words
-        .map(w => w[0])
-        .join("")
-        .toLowerCase()
-        .slice(0, 4);
+    return sanitizeIdentifier(projectName).slice(0, 10) || "sample";
 }
 
 export function sanitizeIdentifier(name: string): string {
@@ -108,18 +95,18 @@ export function sanitizeIdentifier(name: string): string {
         .replace(/^_|_$/g, "");
 }
 
-export function getMarketplaceScopeSegments(config: Pick<ProjectConfig, "namespace" | "projectId" | "useMarketplaceStructure">): string[] {
-    return config.useMarketplaceStructure ? [config.namespace, config.projectId] : [];
+export function getMarketplaceScopeSegments(config: Pick<ProjectConfig, "identifier" | "projectId" | "useMarketplaceStructure">): string[] {
+    return config.useMarketplaceStructure ? [config.identifier, config.projectId] : [];
 }
 
-export function getMarketplaceScopeLabel(config: Pick<ProjectConfig, "namespace" | "projectId">): string {
-    return `${config.namespace}/${config.projectId}`;
+export function getMarketplaceScopeLabel(config: Pick<ProjectConfig, "identifier" | "projectId">): string {
+    return `${config.identifier}/${config.projectId}`;
 }
 
-export function getScriptDirectorySegments(config: Pick<ProjectConfig, "namespace" | "projectId">): string[] {
-    return ["scripts", config.namespace, config.projectId];
+export function getScriptDirectorySegments(config: Pick<ProjectConfig, "identifier" | "projectId">): string[] {
+    return ["scripts", config.identifier, config.projectId];
 }
 
-export function getScriptEntryPath(config: Pick<ProjectConfig, "namespace" | "projectId">): string {
+export function getScriptEntryPath(config: Pick<ProjectConfig, "identifier" | "projectId">): string {
     return [...getScriptDirectorySegments(config), "main.js"].join("/");
 }

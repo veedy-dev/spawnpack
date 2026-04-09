@@ -211,7 +211,7 @@ export function generateReadme(config: ProjectConfig): string {
                 ? "2. Write your gameplay scripts in `data/scripts/`.\n3. Run `bun run build` or `npm run build` to compile TypeScript into `packs/BP/scripts/`."
                 : "2. Write your gameplay scripts in `packs/BP/scripts/` and let Minecraft copy the pack into `com.mojang`.";
     const aiSection = config.useAi
-        ? `## AI Tooling\n\nSpawnpack generated \`CLAUDE.md\` and \`.mcp.json\` for AI-assisted development.\n\nAdd your own API keys before using the MCP tools:\n\n- Exa dashboard: https://dashboard.exa.ai\n- Exa API key docs: https://exa.ai/docs/reference/team-management/create-api-key\n- Hyperbrowser signup: https://app.hyperbrowser.ai/signup\n- Hyperbrowser quickstart: https://hyperbrowser.ai/docs/quickstart\n\nUpdate the placeholder values in \`.mcp.json\` with your own tokens.\n\n`
+        ? `## AI Tooling\n\nSpawnpack generated \`CLAUDE.md\` and \`.mcp.json\` for AI-assisted development.\n\nAdd your own API keys before using the MCP tools:\n\n- Exa API keys: https://dashboard.exa.ai/api-keys\n- Exa API key docs: https://exa.ai/docs/reference/team-management/create-api-key\n- Hyperbrowser signup: https://app.hyperbrowser.ai/signup\n- Hyperbrowser quickstart: https://hyperbrowser.ai/docs/quickstart\n\nUpdate the placeholder values in \`.mcp.json\` with your own tokens.\n\n`
         : "";
 
     return `# ${config.projectName}

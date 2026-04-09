@@ -190,10 +190,16 @@ export function showReview(config: ProjectConfig): void {
         `${border}  ${pc.dim(padLabel("Project:"))} ${formatValue(config.projectName)}`,
         `${border}  ${pc.dim(padLabel("Author:"))} ${config.author ? formatValue(config.author) : pc.dim("—")}`,
         `${border}  ${pc.dim(padLabel("Namespace:"))} ${formatValue(config.namespace)}`,
-        `${border}  ${pc.dim(padLabel("Identifier:"))} ${formatValue(config.identifier)}`,
-        `${border}  ${pc.dim(padLabel("Project ID:"))} ${formatValue(config.projectId)}`,
+        ...(config.useMarketplaceStructure
+            ? [
+                `${border}  ${pc.dim(padLabel("Publisher ID:"))} ${formatValue(config.identifier)}`,
+                `${border}  ${pc.dim(padLabel("Project ID:"))} ${formatValue(config.projectId)}`,
+                `${border}  ${pc.dim(padLabel("Marketplace structure:"))} ${formatValue(getMarketplaceScopeLabel(config))}`,
+            ]
+            : [
+                `${border}  ${pc.dim(padLabel("Marketplace structure:"))} ${pc.dim("Disabled")}`,
+            ]),
         `${border}  ${pc.dim(padLabel("Destination:"))} ${formatValue(config.destination)}`,
-        `${border}  ${pc.dim(padLabel("Marketplace structure:"))} ${config.useMarketplaceStructure ? formatValue(getMarketplaceScopeLabel(config)) : pc.dim("Disabled")}`,
         `${border}  ${pc.dim(padLabel("Scripting:"))} ${formatValue(getScriptingLabel(config.scripting))}`,
         `${border}  ${pc.dim(padLabel("Packages:"))} ${packages}`,
         `${border}  ${pc.dim(padLabel("rgl:"))} ${formatToggle(config.useRgl)}`,
@@ -235,6 +241,13 @@ export function showPostGeneration(config: ProjectConfig): void {
 
     if (config.scripting === "none" && !config.useRgl) {
         usefulCommands.push(`  ${pc.dim("No extra build commands needed for this scaffold")}`);
+    }
+
+    if (config.useAi) {
+        usefulCommands.push("");
+        usefulCommands.push(`${teal(pc.bold("Note"))} ${pc.dim("Add your own Exa and Hyperbrowser MCP API keys in .mcp.json before using the AI tooling.")}`);
+        usefulCommands.push(`  ${pc.dim("Exa:")} ${pc.cyan("https://dashboard.exa.ai/api-keys")}`);
+        usefulCommands.push(`  ${pc.dim("Hyperbrowser:")} ${pc.cyan("https://app.hyperbrowser.ai/signup")}`);
     }
 
     log.message([...nextSteps, "", ...usefulCommands].join("\n"), {

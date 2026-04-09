@@ -11,7 +11,6 @@ import pc from "picocolors";
 import {
     DEFAULT_SCRIPT_PACKAGES,
     generateProjectId,
-    sanitizeIdentifier,
     type ProjectConfig,
     type ScriptPackages,
     type ScriptingChoice,
@@ -35,10 +34,6 @@ function toScriptPackages(selected: ScriptPackageKey[]): ScriptPackages {
         vanillaData: selected.includes("vanillaData"),
         math: selected.includes("math"),
     };
-}
-
-function sanitizePromptValue(value: string): string {
-    return sanitizeIdentifier(value).replace(/-/g, "_");
 }
 
 export async function runWizard(): Promise<ProjectConfig | null> {
@@ -74,7 +69,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
 
     const trimmedProjectName = projectName.trim();
     const defaultNamespace = "sample";
-    const defaultIdentifier = sanitizePromptValue(trimmedProjectName) || "cool_addon";
     const suggestedProjectId = generateProjectId(trimmedProjectName);
 
     const author = await text({
@@ -111,46 +105,64 @@ export async function runWizard(): Promise<ProjectConfig | null> {
 
     const namespaceValue = namespace.trim();
 
-    const identifier = await text({
-        message: `${pc.bold("Addon identifier")} ${pc.dim(`shown as ${namespaceValue}:your_addon`)}`,
-        placeholder: defaultIdentifier,
-        initialValue: defaultIdentifier,
-        validate(value) {
-            const trimmed = (value ?? "").trim();
-
-            if (trimmed.length === 0) {
-                return "Addon identifier is required.";
-            }
-
-            if (!/^[a-z0-9_]+$/.test(trimmed)) {
-                return "Use lowercase letters, numbers, and underscores only.";
-            }
-
-            return undefined;
-        },
+    const useMarketplaceStructure = await confirm({
+        message: `${pc.bold("Marketplace Add-On structure?")} ${pc.dim("Nest BP/RP content under publisher_id/project_id for better coexistence")}`,
+        initialValue: false,
     });
 
-    if (isCancel(identifier)) {
+    if (isCancel(useMarketplaceStructure)) {
         return abortWizard();
     }
 
-    const projectId = await text({
-        message: `${pc.bold("Project ID")} ${pc.dim("2-4 lowercase letters or numbers")}`,
-        placeholder: suggestedProjectId,
-        initialValue: suggestedProjectId,
-        validate(value) {
-            const trimmed = (value ?? "").trim();
+    let identifierValue = namespaceValue;
+    let projectIdValue = suggestedProjectId;
 
-            if (!/^[a-z0-9]{2,4}$/.test(trimmed)) {
-                return "Project ID must be 2-4 lowercase letters or numbers.";
-            }
+    if (useMarketplaceStructure) {
+        const publisherId = await text({
+            message: `${pc.bold("Publisher ID")} ${pc.dim("used for scoped folders like publisher_id/project_id")}`,
+            placeholder: namespaceValue,
+            initialValue: namespaceValue,
+            validate(value) {
+                const trimmed = (value ?? "").trim();
 
-            return undefined;
-        },
-    });
+                if (trimmed.length === 0) {
+                    return "Publisher ID is required.";
+                }
 
-    if (isCancel(projectId)) {
-        return abortWizard();
+                if (!/^[a-z0-9_]+$/.test(trimmed)) {
+                    return "Use lowercase letters, numbers, and underscores only.";
+                }
+
+                return undefined;
+            },
+        });
+
+        if (isCancel(publisherId)) {
+            return abortWizard();
+        }
+
+        identifierValue = publisherId.trim();
+
+        const projectId = await text({
+            message: `${pc.bold("Project ID")} ${pc.dim("1-10 lowercase letters, numbers, or underscores")}`,
+            placeholder: suggestedProjectId,
+            initialValue: suggestedProjectId,
+            validate(value) {
+                const trimmed = (value ?? "").trim();
+
+                if (!/^[a-z0-9_]{1,10}$/.test(trimmed)) {
+                    return "Project ID must be 1-10 lowercase letters, numbers, or underscores.";
+                }
+
+                return undefined;
+            },
+        });
+
+        if (isCancel(projectId)) {
+            return abortWizard();
+        }
+
+        projectIdValue = projectId.trim();
     }
 
     const destination = await text({
@@ -177,15 +189,6 @@ export async function runWizard(): Promise<ProjectConfig | null> {
     });
 
     if (isCancel(destination)) {
-        return abortWizard();
-    }
-
-    const useMarketplaceStructure = await confirm({
-        message: `${pc.bold("Marketplace Add-On structure?")} ${pc.dim("Nest BP/RP content under namespace/projectId for better coexistence")}`,
-        initialValue: false,
-    });
-
-    if (isCancel(useMarketplaceStructure)) {
         return abortWizard();
     }
 
@@ -261,8 +264,8 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         projectName: trimmedProjectName,
         author: author.trim(),
         namespace: namespaceValue,
-        identifier: identifier.trim(),
-        projectId: projectId.trim(),
+        identifier: identifierValue,
+        projectId: projectIdValue,
         destination: destination.trim(),
         scripting,
         scriptPackages: scripting === "none" ? { ...DEFAULT_SCRIPT_PACKAGES } : scriptPackages,
