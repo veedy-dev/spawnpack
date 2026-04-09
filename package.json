@@ -6,9 +6,10 @@
     "license": "MIT",
     "type": "module",
     "bin": {
-        "spawnpack": "./dist/spawnpack.js"
+        "spawnpack": "bin/spawnpack.js"
     },
     "files": [
+        "bin/spawnpack.js",
         "dist/spawnpack.js",
         "templates/CLAUDE.md",
         "README.md",
