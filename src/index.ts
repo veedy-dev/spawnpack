@@ -10,6 +10,14 @@ import { runWizard } from "./tui/wizard.js";
 
 const teal = (value: string): string => `\x1b[38;2;47;208;181m${value}\x1b[39m`;
 
+const args = new Set(process.argv.slice(2));
+
+if (args.has("-v") || args.has("--version")) {
+    const packageJson = await Bun.file(new URL("../package.json", import.meta.url)).json() as { version: string };
+    console.log(packageJson.version);
+    process.exit(0);
+}
+
 const config = await runWizard();
 
 if (config === null) {

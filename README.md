@@ -36,6 +36,12 @@ Install Bun first:
 bun add -g spawnpack
 ```
 
+### Global install with npm
+
+```bash
+npm i -g spawnpack
+```
+
 ### One-off run with Bun
 
 ```bash
@@ -53,6 +59,13 @@ bun run src/index.ts
 
 ```bash
 spawnpack
+```
+
+Show the installed version:
+
+```bash
+spawnpack -v
+spawnpack --version
 ```
 
 The wizard walks through:

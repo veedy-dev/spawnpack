@@ -11,6 +11,9 @@ Thumbs.db
 # Bun
 bun.lockb
 
+# npm
+package-lock.json
+
 # IDE
 .vscode/
 .idea/
