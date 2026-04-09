@@ -16,17 +16,30 @@ It generates BP/RP structure, optional Script API setup, optional rgl integratio
   - `@minecraft/math`
 - Optional `rgl` setup for faster Bedrock builds
 - Optional marketplace add-on structure using nested `namespace/projectId` folders in BP/RP content directories
+- Optional Rockide recommendation during setup
 - Optional AI setup:
   - `CLAUDE.md`
   - `.mcp.json`
-- Optional Rockide recommendation during setup
+
+## Runtime Requirement
+
+Spawnpack is published on npm, but it runs on **Bun**.
+
+Install Bun first:
+- https://bun.sh/
 
 ## Install
 
-### Bun
+### Global install with Bun
 
 ```bash
 bun add -g spawnpack
+```
+
+### One-off run with Bun
+
+```bash
+bunx spawnpack
 ```
 
 ### Run locally
@@ -43,6 +56,7 @@ spawnpack
 ```
 
 The wizard walks through:
+
 1. Project name and author
 2. Namespace, addon identifier, and project ID
 3. Destination folder
@@ -86,12 +100,14 @@ This helps multiple add-ons coexist more safely in the same world by reducing co
 
 ## Script dependency versions
 
-Spawnpack currently generates these stable package versions by default:
+Spawnpack fetches the latest stable npm versions for:
 
-- `@minecraft/server` `2.6.0`
-- `@minecraft/server-ui` `2.0.0`
-- `@minecraft/vanilla-data` `1.26.13`
-- `@minecraft/math` `2.4.0`
+- `@minecraft/server`
+- `@minecraft/server-ui`
+- `@minecraft/vanilla-data`
+- `@minecraft/math`
+
+If version lookup fails, it falls back to baked stable defaults.
 
 ## Development
 
@@ -105,8 +121,10 @@ bun run build
 
 The npm package is configured to publish only:
 
-- `dist/`
+- `dist/spawnpack.js`
+- `templates/CLAUDE.md`
 - `README.md`
+- `LICENSE`
 - `package.json`
 
 Internal planning files, Serena state, and local AI/project notes are excluded from the published tarball.
