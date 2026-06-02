@@ -1,10 +1,15 @@
 import { join } from "node:path";
 
-interface McpServerConfig {
-    command: string;
-    args: string[];
-    env?: Record<string, string>;
-}
+type McpServerConfig =
+    | {
+        command: string;
+        args: string[];
+        env?: Record<string, string>;
+    }
+    | {
+        url: string;
+        headers?: Record<string, string>;
+    };
 
 function buildMcpServers(): Record<string, McpServerConfig> {
     return {
@@ -15,11 +20,10 @@ function buildMcpServers(): Record<string, McpServerConfig> {
                 EXA_API_KEY: "YOUR_EXA_API_KEY",
             },
         },
-        hyperbrowser: {
-            command: "npx",
-            args: ["-y", "hyperbrowser-mcp"],
-            env: {
-                HYPERBROWSER_API_KEY: "YOUR_HYPERBROWSER_API_KEY",
+        "browser-use": {
+            url: "https://api.browser-use.com/v3/mcp",
+            headers: {
+                "x-browser-use-api-key": "YOUR_BROWSER_USE_API_KEY",
             },
         },
         "sequential-thinking": {

@@ -250,9 +250,9 @@ export function showPostGeneration(config: ProjectConfig): void {
 
     if (config.useAi) {
         usefulCommands.push("");
-        usefulCommands.push(`${teal(pc.bold("Note"))} ${pc.dim("Add your own Exa and Hyperbrowser MCP API keys in .mcp.json before using the AI tooling.")}`);
+        usefulCommands.push(`${teal(pc.bold("Note"))} ${pc.dim("Add your own Exa and Browser Use MCP API keys in .mcp.json before using the AI tooling.")}`);
         usefulCommands.push(`  ${pc.dim("Exa:")} ${pc.cyan("https://dashboard.exa.ai/api-keys")}`);
-        usefulCommands.push(`  ${pc.dim("Hyperbrowser:")} ${pc.cyan("https://app.hyperbrowser.ai/signup")}`);
+        usefulCommands.push(`  ${pc.dim("Browser Use:")} ${pc.cyan("https://cloud.browser-use.com/settings?tab=api-keys&new=1")}`);
     }
 
     log.message([...nextSteps, "", ...usefulCommands].join("\n"), {
