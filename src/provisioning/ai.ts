@@ -1,23 +1,28 @@
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
+import { getAiDocFilename, type AiSetupChoice } from "../config.js";
 import { generateMcpConfig } from "./mcp.js";
 
 const AI_EXCLUDE_LINES = [
     "# AI tool files",
-    "CLAUDE.md",
-    "AGENTS.md",
-    ".mcp.json",
-    ".claude/",
-    ".serena/",
+    "/CLAUDE.md",
+    "/AGENTS.md",
+    "/.mcp.json",
+    "/.claude/",
+    "/.serena/",
 ];
 
-const CLAUDE_TEMPLATE_URLS = [
-    new URL("../templates/CLAUDE.md", import.meta.url),
-    new URL("../../templates/CLAUDE.md", import.meta.url),
-];
+function getTemplateUrls(filename: string): URL[] {
+    return [
+        new URL(`../templates/${filename}`, import.meta.url),
+        new URL(`../../templates/${filename}`, import.meta.url),
+    ];
+}
 
-async function createClaudeMdContent(): Promise<string> {
-    for (const templateUrl of CLAUDE_TEMPLATE_URLS) {
+async function createAiDocContent(filename: string): Promise<string> {
+    const templateUrls = getTemplateUrls(filename);
+
+    for (const templateUrl of templateUrls) {
         const templateFile = Bun.file(templateUrl);
         const exists = await templateFile.exists().then(
             value => value,
@@ -29,14 +34,20 @@ async function createClaudeMdContent(): Promise<string> {
         }
     }
 
-    return await Bun.file(CLAUDE_TEMPLATE_URLS[0]).text();
+    return await Bun.file(templateUrls[0]).text();
 }
 
-export async function generateClaudeMd(projectPath: string): Promise<void> {
-    const claudePath = join(projectPath, "CLAUDE.md");
-    const content = await createClaudeMdContent();
+export async function generateAiDoc(projectPath: string, aiSetup: AiSetupChoice): Promise<void> {
+    const filename = getAiDocFilename(aiSetup);
 
-    await Bun.write(claudePath, content).then(
+    if (filename === null) {
+        return;
+    }
+
+    const outputPath = join(projectPath, filename);
+    const content = await createAiDocContent(filename);
+
+    await Bun.write(outputPath, content).then(
         () => undefined,
         () => undefined,
     );
@@ -84,8 +95,12 @@ export async function setupGitExcludes(projectPath: string): Promise<void> {
     );
 }
 
-export async function setupAi(projectPath: string): Promise<void> {
-    await generateClaudeMd(projectPath);
+export async function setupAi(projectPath: string, aiSetup: AiSetupChoice): Promise<void> {
+    if (aiSetup === "none") {
+        return;
+    }
+
+    await generateAiDoc(projectPath, aiSetup);
     await setupGitExcludes(projectPath);
     await generateMcpConfig(projectPath);
 }

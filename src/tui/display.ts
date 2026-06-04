@@ -1,7 +1,9 @@
 import { log } from "@clack/prompts";
 import pc from "picocolors";
 import {
+    getAiDocFilename,
     getMarketplaceScopeLabel,
+    type AiSetupChoice,
     type ProjectConfig,
     type ScriptPackages,
     type ScriptingChoice,
@@ -24,6 +26,18 @@ function getScriptingLabel(choice: ScriptingChoice): string {
 
     if (choice === "javascript") {
         return "JavaScript";
+    }
+
+    return "None";
+}
+
+function getAiSetupLabel(choice: AiSetupChoice): string {
+    if (choice === "claude") {
+        return "Claude";
+    }
+
+    if (choice === "other") {
+        return "Other";
     }
 
     return "None";
@@ -171,8 +185,10 @@ export function showFolderTree(config: ProjectConfig): string {
         lines.push(pc.dim("├─ config.json"));
     }
 
-    if (config.useAi) {
-        lines.push(pc.dim("├─ CLAUDE.md"));
+    const aiDocFilename = getAiDocFilename(config.aiSetup);
+
+    if (aiDocFilename !== null) {
+        lines.push(pc.dim(`├─ ${aiDocFilename}`));
         lines.push(pc.dim("├─ .mcp.json"));
     }
 
@@ -209,7 +225,7 @@ export function showReview(config: ProjectConfig): void {
         `${border}  ${pc.dim(padLabel("Packages:"))} ${packages}`,
         `${border}  ${pc.dim(padLabel("rgl:"))} ${formatToggle(config.useRgl)}`,
         `${border}  ${pc.dim(padLabel("Rockide:"))} ${formatToggle(config.installRockide)}`,
-        `${border}  ${pc.dim(padLabel("AI Setup:"))} ${formatToggle(config.useAi)}`,
+        `${border}  ${pc.dim(padLabel("AI Setup:"))} ${formatValue(getAiSetupLabel(config.aiSetup))}`,
         "",
         `${border}  ${teal(pc.bold("Planned structure"))}`,
         ...showFolderTree(config).split("\n").map(line => `${border}  ${line}`),
@@ -248,7 +264,7 @@ export function showPostGeneration(config: ProjectConfig): void {
         usefulCommands.push(`  ${pc.dim("No extra build commands needed for this scaffold")}`);
     }
 
-    if (config.useAi) {
+    if (config.aiSetup !== "none") {
         usefulCommands.push("");
         usefulCommands.push(`${teal(pc.bold("Note"))} ${pc.dim("Add your own Exa and Browser Use MCP API keys in .mcp.json before using the AI tooling.")}`);
         usefulCommands.push(`  ${pc.dim("Exa:")} ${pc.cyan("https://dashboard.exa.ai/api-keys")}`);

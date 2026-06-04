@@ -12,6 +12,7 @@ import {
     DEFAULT_SCRIPT_PACKAGES,
     generateProjectId,
     sanitizeIdentifier,
+    type AiSetupChoice,
     type ProjectConfig,
     type ScriptPackages,
     type ScriptingChoice,
@@ -230,12 +231,17 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         return abortWizard();
     }
 
-    const useAi = await confirm({
-        message: `${pc.bold("AI setup?")} ${pc.dim("generate CLAUDE.md with Bedrock development rules")}`,
-        initialValue: false,
+    const aiSetup = await select<AiSetupChoice>({
+        message: pc.bold("AI setup"),
+        initialValue: "none",
+        options: [
+            { value: "none", label: "None", hint: "no AI docs or MCP config" },
+            { value: "claude", label: "Claude", hint: "generate CLAUDE.md and .mcp.json" },
+            { value: "other", label: "Other", hint: "generate AGENTS.md and .mcp.json" },
+        ],
     });
 
-    if (isCancel(useAi)) {
+    if (isCancel(aiSetup)) {
         return abortWizard();
     }
 
@@ -249,7 +255,7 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         scriptPackages: scripting === "none" ? { ...DEFAULT_SCRIPT_PACKAGES } : scriptPackages,
         useMarketplaceStructure,
         useRgl: scripting === "none" ? false : useRgl,
-        useAi,
+        aiSetup,
         installRockide,
     };
 

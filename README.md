@@ -18,7 +18,8 @@ It generates BP/RP structure, optional Script API setup, optional rgl integratio
 - Optional marketplace add-on structure using nested `namespace/projectId` folders in BP/RP content directories
 - Optional Rockide recommendation during setup
 - Optional AI setup:
-  - `CLAUDE.md`
+  - `CLAUDE.md` for Claude
+  - `AGENTS.md` for Other
   - `.mcp.json`
 
 ## Runtime Requirement
@@ -78,7 +79,7 @@ The wizard walks through:
 6. Script packages
 7. `rgl` toggle
 8. Rockide toggle
-9. AI setup toggle
+9. AI setup choice (`None`, `Claude`, or `Other`)
 10. Review screen and generation
 
 ## Generated project options
@@ -94,6 +95,7 @@ Depending on your choices, Spawnpack can generate:
 - `dprint.json`
 - `config.json` for `rgl`
 - `CLAUDE.md`
+- `AGENTS.md`
 - `.mcp.json`
 
 ## Marketplace structure mode
@@ -136,6 +138,7 @@ The npm package is configured to publish only:
 
 - `dist/spawnpack.js`
 - `templates/CLAUDE.md`
+- `templates/AGENTS.md`
 - `README.md`
 - `LICENSE`
 - `package.json`

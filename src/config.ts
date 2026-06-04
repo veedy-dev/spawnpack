@@ -8,11 +8,12 @@ export interface ProjectConfig {
     scriptPackages: ScriptPackages;
     useMarketplaceStructure: boolean;
     useRgl: boolean;
-    useAi: boolean;
+    aiSetup: AiSetupChoice;
     installRockide: boolean;
 }
 
 export type ScriptingChoice = "none" | "javascript" | "typescript";
+export type AiSetupChoice = "none" | "claude" | "other";
 
 export interface ScriptPackages {
     server: boolean;
@@ -108,4 +109,16 @@ export function getScriptDirectorySegments(config: Pick<ProjectConfig, "identifi
 
 export function getScriptEntryPath(config: Pick<ProjectConfig, "identifier" | "projectId">): string {
     return [...getScriptDirectorySegments(config), "main.js"].join("/");
+}
+
+export function getAiDocFilename(aiSetup: AiSetupChoice): "CLAUDE.md" | "AGENTS.md" | null {
+    if (aiSetup === "claude") {
+        return "CLAUDE.md";
+    }
+
+    if (aiSetup === "other") {
+        return "AGENTS.md";
+    }
+
+    return null;
 }

@@ -666,7 +666,7 @@ serena_run_command(command="npm run build")
 </serena_integration>
 
 <prompt_cache_awareness>
-Your system prompt, tools, and CLAUDE.md are cached as a prefix. Breaking this prefix invalidates the cache for the entire session.
+Your system prompt, tools, and AGENTS.md are cached as a prefix. Breaking this prefix invalidates the cache for the entire session.
 
 - Do not request model switches mid-session. Delegate to a sub-agent if a subtask needs a different model.
 - Do not suggest adding or removing tools mid-conversation.

@@ -28,8 +28,8 @@ const generation = spinner();
 generation.start(teal("Generating your Bedrock addon scaffold..."));
 await generateProject(config);
 
-if (config.useAi) {
-    await setupAi(config.destination);
+if (config.aiSetup !== "none") {
+    await setupAi(config.destination, config.aiSetup);
 }
 
 await runProvisioning(config);
