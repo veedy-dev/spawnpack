@@ -214,6 +214,9 @@ export function generateReadme(config: ProjectConfig): string {
     const aiSection = aiDocFilename !== null
         ? `## AI Tooling\n\nSpawnpack generated \`${aiDocFilename}\` and \`.mcp.json\` for AI-assisted development.\n\nAdd your own API keys before using the MCP tools:\n\n- Exa API keys: https://dashboard.exa.ai/api-keys\n- Exa API key docs: https://exa.ai/docs/reference/team-management/create-api-key\n- Browser Use API keys: https://cloud.browser-use.com/settings?tab=api-keys&new=1\n- Browser Use MCP docs: https://docs.browser-use.com/cloud/guides/mcp-server\n\nUpdate the placeholder values in \`.mcp.json\` with your own tokens.\n\n`
         : "";
+    const scriptPackageSection = config.scripting !== "none"
+        ? `## Script Packages\n\nSelected npm packages are installed through \`package.json\`. Only runtime Script API modules such as \`@minecraft/server\` and \`@minecraft/server-ui\` are written to \`packs/BP/manifest.json\`; npm-side libraries such as \`@minecraft/vanilla-data\` and \`@minecraft/math\` are imported and bundled from \`package.json\`.\n\n`
+        : "";
 
     return `# ${config.projectName}
 
@@ -238,7 +241,7 @@ ${config.scripting === "none"
             ? `- Write your TypeScript entrypoint in \`data/scripts/main.ts\`.\n- Add more TypeScript files anywhere under \`data/scripts/\` and import them from \`main.ts\`.\n- rgl compiles your TypeScript from \`data/scripts/\` into \`${runtimeEntry}\`.`
             : `- Write your JavaScript entrypoint directly in \`${runtimeEntry}\`.\n- Add additional JavaScript files beside \`main.js\` and import them from there.\n- Minecraft copies the BP/RP content directly into \`com.mojang\`, so there is no TypeScript compile step.`}
 
-${config.useRgl
+${scriptPackageSection}${config.useRgl
         ? `## rgl Workflow
 
 - \`rgl watch\` rebuilds your scripts and exports your add-on while you work.

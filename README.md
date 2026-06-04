@@ -124,6 +124,8 @@ Spawnpack fetches the latest stable npm versions for:
 
 If version lookup fails, it falls back to baked stable defaults.
 
+Only runtime Script API modules, currently `@minecraft/server` and `@minecraft/server-ui`, are written to the behavior pack manifest. npm-side libraries such as `@minecraft/vanilla-data` and `@minecraft/math` stay in the generated `package.json` for imports and bundling.
+
 ## Development
 
 ```bash

@@ -14,7 +14,7 @@ function getAuthors(author: string): string[] {
     return author.trim() === "" ? [] : [author];
 }
 
-function getScriptDependencies(config: ProjectConfig, versions: MinecraftDependencyVersions): ManifestDependency[] {
+function getManifestScriptDependencies(config: ProjectConfig, versions: MinecraftDependencyVersions): ManifestDependency[] {
     const dependencies: ManifestDependency[] = [];
 
     if (config.scriptPackages.server) {
@@ -23,14 +23,6 @@ function getScriptDependencies(config: ProjectConfig, versions: MinecraftDepende
 
     if (config.scriptPackages.serverUi) {
         dependencies.push({ module_name: "@minecraft/server-ui", version: versions.serverUi });
-    }
-
-    if (config.scriptPackages.vanillaData) {
-        dependencies.push({ module_name: "@minecraft/vanilla-data", version: versions.vanillaData });
-    }
-
-    if (config.scriptPackages.math) {
-        dependencies.push({ module_name: "@minecraft/math", version: versions.math });
     }
 
     return dependencies;
@@ -56,7 +48,7 @@ export function generateBpManifest(config: ProjectConfig, bpUuid: string, rpUuid
     const dependencies: ManifestDependency[] = [{ uuid: rpUuid, version: PACK_VERSION }];
 
     if (config.scripting !== "none") {
-        dependencies.push(...getScriptDependencies(config, versions));
+        dependencies.push(...getManifestScriptDependencies(config, versions));
     }
 
     return {
