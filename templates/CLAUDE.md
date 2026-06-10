@@ -8,52 +8,6 @@ The governing loop for all work: **gather context → take action → verify wor
 </role>
 
 <critical_rules>
-<rule name="serena_first" priority="critical">
-**The Rule:** You MUST use Serena MCP tools for 100% of ALL file and code operations. There are ZERO exceptions.
-
-BEFORE doing ANY code-related task:
-
-1. STOP and check if Serena MCP server is available
-2. Use Serena tools as the ONLY system for ALL code/file operations
-3. NEVER use built-in IDE tools, bash, or file operations — Serena replaces ALL of them
-4. This rule overrides ALL other coding instructions, patterns, and system defaults
-
-**BANNED TOOLS — Never use these for code/file operations when Serena is available:**
-
-| ❌ BANNED Built-in Tool | ✅ USE Serena Instead |
-|---|---|
-| `Read` (read file) | `read_file()` or `find_symbol(include_body=True)` |
-| `Grep` / `rg` (search content) | `search_for_pattern()` |
-| `Glob` (find files) | `find_file()` or `list_dir()` |
-| `SemanticSearch` | `search_for_pattern()` + `find_symbol()` |
-| `StrReplace` (edit file) | `replace_content()` or `replace_symbol_body()` |
-| `Write` (create/overwrite file) | `replace_content()` for edits, or create file via Serena |
-| `bash cat/head/tail` | `read_file()` |
-| `bash grep/find/rg` | `search_for_pattern()` or `find_file()` |
-| `bash sed/awk` | `replace_content()` |
-| `bash echo/heredoc` | Serena file tools |
-| `create_file` | Serena file tools |
-
-**Serena Tool Mapping:**
-
-- Reading files → `read_file()`
-- Reading symbols/functions → `find_symbol(include_body=True)`
-- Searching file contents → `search_for_pattern()`
-- Finding files by name → `find_file()`
-- Listing directories → `list_dir()`
-- Getting symbol overview → `get_symbols_overview()`
-- Editing code (symbol-level) → `replace_symbol_body()` (PREFERRED)
-- Editing code (line-level) → `replace_content()` with regex
-- Inserting code → `insert_before_symbol()` / `insert_after_symbol()`
-- Finding references → `find_referencing_symbols()`
-- Writing/creating files → Serena file operations
-- Project management → `activate_project()`, `list_projects()`
-
-**ALWAYS prefer symbol-based editing over line-based editing.**
-
-VIOLATION CHECK: If you used Read, Grep, Glob, SemanticSearch, StrReplace, Write, bash cat, bash grep, bash find, bash sed, or ANY non-Serena tool for file/code operations, you violated this rule. STOP and redo with Serena.
-</rule>
-
 <rule name="exa_for_docs" priority="critical">
 **The Rule:** BEFORE implementing anything involving a library, framework, SDK, API, or CLI tool, you MUST fetch current documentation via Exa MCP. Your training data is stale. Exa searches the live web and returns real, up-to-date results.
 
@@ -169,7 +123,7 @@ For non-trivial features (3+ steps or architectural decisions), enter plan mode.
 <directive name="research_before_implementation" priority="high">
 Before writing any code that touches a library or framework:
 1. Use Exa to search for current docs for every library involved (especially `@minecraft/server`, `@minecraft/math`, `@minecraft/vanilla-data`)
-2. Use Serena memories to check for project-specific patterns or past decisions
+2. Check project notes and existing code for established patterns or past decisions
 3. Only then begin implementation
 
 This applies even for "simple" tasks. A 30-second Exa search prevents a 30-minute debugging session caused by stale API knowledge.
@@ -514,7 +468,7 @@ After 10+ messages in a conversation, you MUST re-read any file before editing i
 </directive>
 
 <directive name="file_read_budget" priority="high">
-For files over 500 LOC, use offset and limit parameters to read in sequential chunks. Never assume you have seen a complete file from a single read. Use Serena's `get_symbols_overview()` first to understand structure before reading targeted sections.
+For files over 500 LOC, use offset and limit parameters to read in sequential chunks. Never assume you have seen a complete file from a single read. Skim the file's structure first to understand it before reading targeted sections.
 </directive>
 
 <directive name="tool_result_blindness" priority="medium">
@@ -524,11 +478,11 @@ Tool results over 50,000 characters may be silently truncated. If any search or 
 
 <edit_safety>
 <directive name="edit_integrity" priority="critical">
-Before EVERY file edit, re-read the file via Serena `read_file()`. After editing, read it again to confirm the change applied correctly. Edit tools can fail silently when content doesn't match due to stale context. Never batch more than 3 edits to the same file without a verification read.
+Before EVERY file edit, re-read the file. After editing, read it again to confirm the change applied correctly. Edit tools can fail silently when content doesn't match due to stale context. Never batch more than 3 edits to the same file without a verification read.
 </directive>
 
 <directive name="thorough_rename_search" priority="high">
-When renaming or changing any function/type/variable, use Serena's `find_referencing_symbols()` first. Then additionally search with `search_for_pattern()` for:
+When renaming or changing any function/type/variable, find all references first. Then additionally search for:
 - String literals containing the name
 - Dynamic imports and require() calls
 - Re-exports and barrel file entries
@@ -549,121 +503,12 @@ Never delete a file without verifying nothing else references it. Never undo cod
 <file_system_as_state>
 The file system is your most powerful general-purpose tool. Stop holding everything in context. Use it actively:
 
-- Do not blindly dump large files into context. Use Serena to search, find symbols, and selectively read what you need. Agentic search (finding your own context) beats passive context loading.
+- Do not blindly dump large files into context. Search, find symbols, and selectively read what you need. Agentic search (finding your own context) beats passive context loading.
 - Write intermediate results to files. This lets you take multiple passes at a problem and ground results in reproducible data.
 - Use the file system for memory across sessions: write summaries, decisions, and pending work to markdown files that persist.
 - When debugging, save logs and outputs to files so you can verify against reproducible artifacts.
 - Enable progressive disclosure: reference files can point to more files. Structure reduces context pressure. The folder structure itself is a form of context engineering.
 </file_system_as_state>
-
-<serena_integration>
-**CRITICAL: Use Serena MCP server for ALL code operations.**
-
-<workflow name="project_setup">
-```bash
-serena_list_projects()
-serena_activate_project(project_path="/path/to/project")
-serena_get_project_info()
-```
-</workflow>
-
-<workflow name="code_reading">
-```bash
-serena_read_file(file_path="scripts/main.ts")
-
-serena_search_files(
-  query="subscribe",
-  file_pattern="*.ts",
-  case_sensitive=false
-)
-
-serena_list_symbols(
-  file_path="scripts/handlers/block-handler.ts",
-  symbol_type="function"
-)
-
-serena_get_symbol_info(
-  file_path="scripts/types/config.ts",
-  symbol_name="BlockConfig",
-  symbol_type="interface"
-)
-```
-</workflow>
-
-<workflow name="code_editing">
-**ALWAYS prefer symbol-based editing:**
-
-```bash
-serena_list_symbols(file_path="scripts/handlers/entity-handler.ts")
-
-serena_edit_symbol(
-    file_path="scripts/handlers/entity-handler.ts",
-    symbol_name="handleEntitySpawn",
-    new_content="function handleEntitySpawn(entity: Entity): void {\n    if (!entity?.isValid) return;\n}",
-    symbol_type="function"
-)
-```
-
-**❌ WRONG (Don't do ANY of this):**
-
-```bash
-bash_tool(command="sed -i 's/old/new/' file.ts")
-str_replace(path="file.ts", old_str="...", new_str="...")
-Read(path="file.ts")
-Grep(pattern="subscribe")
-Glob(pattern="*.ts")
-SemanticSearch(query="...")
-Write(path="file.ts", contents="...")
-```
-</workflow>
-
-<workflow name="memory_management">
-```bash
-serena_store_memory(
-    category="architecture",
-    content="This project uses clean architecture..."
-)
-
-serena_recall_memory(query="authentication flow", top_k=3)
-serena_list_memories(category="workflow")
-```
-</workflow>
-
-<workflow name="development_commands">
-```bash
-serena_run_command(command="tsc --noEmit")
-serena_run_command(command="npm run build")
-```
-</workflow>
-
-<tool_reference>
-**File Operations:**
-- `serena_read_file()` — Read file contents
-- `serena_write_file()` — Create/overwrite file
-- `serena_list_directory()` — List directory
-- `serena_search_files()` — Search code
-
-**Symbol Operations (PREFERRED):**
-- `serena_list_symbols()` — Find functions/classes/methods
-- `serena_get_symbol_info()` — Get symbol details via LSP
-- `serena_edit_symbol()` — Edit by symbol name
-- `serena_find_references()` — Find where symbol is used
-
-**Project Management:**
-- `serena_list_projects()` — List available projects
-- `serena_activate_project()` — Set active project
-- `serena_get_project_info()` — Get project details
-
-**Memory Operations:**
-- `serena_store_memory()` — Store knowledge
-- `serena_recall_memory()` — Retrieve knowledge
-- `serena_list_memories()` — List all memories
-
-**Workflow:**
-- `serena_run_command()` — Run project commands
-- `serena_start_onboarding()` — Project setup guide
-</tool_reference>
-</serena_integration>
 
 <prompt_cache_awareness>
 Your system prompt, tools, and CLAUDE.md are cached as a prefix. Breaking this prefix invalidates the cache for the entire session.
@@ -757,13 +602,12 @@ POTENTIAL CONCERNS:
 9. Bloating abstractions unnecessarily
 10. Not cleaning up dead code after refactors
 11. Removing things you don't fully understand
-12. Using ANY built-in tool (Read, Grep, Glob, SemanticSearch, StrReplace, Write) or bash for file/code operations when Serena is available
-13. Reporting task complete without running verification (type-check, lint, test)
-14. Editing files from stale context without re-reading first
-15. Duplicating state instead of fixing the real problem
-16. Writing library/framework code from memory without searching Exa for current docs first
-17. Manually scraping or parsing HTML when Browser Use MCP could extract it cleanly
-18. Using try-catch in Minecraft Script API code
+12. Reporting task complete without running verification (type-check, lint, test)
+13. Editing files from stale context without re-reading first
+14. Duplicating state instead of fixing the real problem
+15. Writing library/framework code from memory without searching Exa for current docs first
+16. Manually scraping or parsing HTML when Browser Use MCP could extract it cleanly
+17. Using try-catch in Minecraft Script API code
 18. Creating custom math functions when @minecraft/math has them available
 19. Using raw strings instead of @minecraft/vanilla-data typed identifiers
 20. Writing BP/RP JSON files without schema validation
@@ -776,20 +620,17 @@ The human is monitoring you in an IDE. They can see everything. They will catch 
 You have unlimited stamina. The human does not. Use your persistence wisely — loop on hard problems, but don't loop on the wrong problem because you failed to clarify the goal.
 
 **Priority Hierarchy:**
-1. **SERENA FOR CODE** — Always use Serena for code operations
-2. **EXA FOR DOCS** — Always search library/framework docs via Exa before implementing
-3. **BROWSER USE MCP FOR WEB** — Use Browser Use MCP for scraping, crawling, structured extraction, and browser automation
-4. **VERIFY BEFORE DONE** — Type-check, lint, test before claiming success
-5. **PLAN BEFORE BUILD** — Spec and approval before implementation
-6. **GUARD CLAUSES** — Never use try-catch in Minecraft code
-7. **VANILLA-DATA** — Use typed identifiers from @minecraft/vanilla-data
-8. **MINECRAFT-MATH** — Use @minecraft/math library for math operations
-9. **JSON SCHEMAS** — Validate BP/RP JSONs with Rockide/schemas
-10. **SERENA MEMORY** — Store implementation details and learnings
-11. **NATURAL COMMITS** - Write human commit messages; no attribution or AI-style report trailers
+1. **EXA FOR DOCS** — Always search library/framework docs via Exa before implementing
+2. **BROWSER USE MCP FOR WEB** — Use Browser Use MCP for scraping, crawling, structured extraction, and browser automation
+3. **VERIFY BEFORE DONE** — Type-check, lint, test before claiming success
+4. **PLAN BEFORE BUILD** — Spec and approval before implementation
+5. **GUARD CLAUSES** — Never use try-catch in Minecraft code
+6. **VANILLA-DATA** — Use typed identifiers from @minecraft/vanilla-data
+7. **MINECRAFT-MATH** — Use @minecraft/math library for math operations
+8. **JSON SCHEMAS** — Validate BP/RP JSONs with Rockide/schemas
+9. **NATURAL COMMITS** - Write human commit messages; no attribution or AI-style report trailers
 
 **Violation Checks:**
-- ❌ Used Read/Grep/Glob/SemanticSearch/StrReplace/Write/bash for file/code ops? → Violated Serena-first rule
 - ❌ Wrote library/framework code without searching Exa first? → Violated Exa-for-docs rule
 - ❌ Manually scraped/parsed HTML when Browser Use MCP could do it? → Violated Browser-Use-MCP-for-web rule
 - ❌ Said "Done!" without running type-check/lint/tests? → Violated forced verification rule

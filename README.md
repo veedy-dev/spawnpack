@@ -145,4 +145,4 @@ The npm package is configured to publish only:
 - `LICENSE`
 - `package.json`
 
-Internal planning files, Serena state, and local AI/project notes are excluded from the published tarball.
+Internal planning files and local AI/project notes are excluded from the published tarball.

@@ -9,7 +9,6 @@ const AI_EXCLUDE_LINES = [
     "/AGENTS.md",
     "/.mcp.json",
     "/.claude/",
-    "/.serena/",
 ];
 
 function getTemplateUrls(filename: string): URL[] {

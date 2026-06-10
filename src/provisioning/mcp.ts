@@ -30,17 +30,6 @@ function buildMcpServers(): Record<string, McpServerConfig> {
             command: "npx",
             args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
         },
-        serena: {
-            command: "uvx",
-            args: [
-                "--from",
-                "git+https://github.com/oraios/serena",
-                "serena",
-                "start-mcp-server",
-                "--context",
-                "ide-assistant",
-            ],
-        },
         grep_app: {
             command: "npx",
             args: ["-y", "grep-mcp"],
