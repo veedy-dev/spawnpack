@@ -20,7 +20,7 @@ It generates BP/RP structure, optional Script API setup, optional rgl integratio
 - Optional AI setup:
   - `CLAUDE.md` for Claude
   - `AGENTS.md` for Other
-  - `.mcp.json`
+  - `.mcp.json` with keyless MCP servers
 
 ## Runtime Requirement
 
@@ -98,6 +98,18 @@ Depending on your choices, Spawnpack can generate:
 - `AGENTS.md`
 - `.mcp.json`
 
+## AI MCP setup
+
+When AI setup is enabled, Spawnpack generates an `.mcp.json` that works out of the box without API keys.
+
+Generated MCP servers currently include:
+
+- Exa hosted MCP (`https://mcp.exa.ai/mcp`) for free, rate-limited web/documentation search
+- `grep_app` for code search
+- `context7` for library documentation context
+
+You can add your own Exa API key later if you need higher Exa limits, but it is not required for the generated scaffold.
+
 ## Marketplace structure mode
 
 When enabled, Spawnpack creates marketplace-style nested folders under many BP/RP content directories.
@@ -139,6 +151,7 @@ bun run build
 The npm package is configured to publish only:
 
 - `dist/spawnpack.js`
+- `bin/spawnpack.js`
 - `templates/CLAUDE.md`
 - `templates/AGENTS.md`
 - `README.md`
