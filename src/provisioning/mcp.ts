@@ -16,10 +16,6 @@ function buildMcpServers(): Record<string, McpServerConfig> {
         exa: {
             url: "https://mcp.exa.ai/mcp",
         },
-        "sequential-thinking": {
-            command: "npx",
-            args: ["-y", "@modelcontextprotocol/server-sequential-thinking"],
-        },
         grep_app: {
             command: "npx",
             args: ["-y", "grep-mcp"],
