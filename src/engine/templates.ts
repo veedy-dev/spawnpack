@@ -212,7 +212,7 @@ export function generateReadme(config: ProjectConfig): string {
                 : "2. Write your gameplay scripts in `packs/BP/scripts/` and let Minecraft copy the pack into `com.mojang`.";
     const aiDocFilename = getAiDocFilename(config.aiSetup);
     const aiSection = aiDocFilename !== null
-        ? `## AI Tooling\n\nSpawnpack generated \`${aiDocFilename}\` and \`.mcp.json\` for AI-assisted development.\n\nAdd your own API keys before using the MCP tools:\n\n- Exa API keys: https://dashboard.exa.ai/api-keys\n- Exa API key docs: https://exa.ai/docs/reference/team-management/create-api-key\n- Browser Use API keys: https://cloud.browser-use.com/settings?tab=api-keys&new=1\n- Browser Use MCP docs: https://docs.browser-use.com/cloud/guides/mcp-server\n\nUpdate the placeholder values in \`.mcp.json\` with your own tokens.\n\n`
+        ? `## AI Tooling\n\nSpawnpack generated \`${aiDocFilename}\` and \`.mcp.json\` for AI-assisted development. The configured MCP servers work out of the box — no API keys required.\n\nExa's hosted MCP runs on a rate-limited free tier. If you need higher limits, you can add your own Exa API key to \`.mcp.json\` (optional): https://dashboard.exa.ai/api-keys\n\n`
         : "";
     const scriptPackageSection = config.scripting !== "none"
         ? `## Script Packages\n\nSelected npm packages are installed through \`package.json\`. Only runtime Script API modules such as \`@minecraft/server\` and \`@minecraft/server-ui\` are written to \`packs/BP/manifest.json\`; npm-side libraries such as \`@minecraft/vanilla-data\` and \`@minecraft/math\` are imported and bundled from \`package.json\`.\n\n`

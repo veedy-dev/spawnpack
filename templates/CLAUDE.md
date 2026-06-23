@@ -36,45 +36,6 @@ The governing loop for all work: **gather context → take action → verify wor
 VIOLATION CHECK: If you wrote library/framework code from memory without searching Exa first, you violated this rule.
 </rule>
 
-<rule name="browser_use_mcp_for_web" priority="high">
-**The Rule:** When you need to interact with live web pages beyond simple doc lookups, use Browser Use MCP. It provides Browser Use Cloud automation via MCP (`https://api.browser-use.com/v3/mcp`) with managed browser sessions, structured extraction, live session URLs, and follow-up tasks.
-
-**Browser Use MCP tools:**
-
-| Tool | Purpose |
-|---|---|
-| `run_session` | Create a browser session and run a natural-language web automation/extraction task |
-| `get_session` | Poll session status/output, step count, cost breakdown, and live URL |
-| `send_task` | Send a follow-up task to an idle keep-alive session |
-| `stop_session` | Stop the current task or destroy the browser session sandbox |
-| `get_session_messages` | Inspect browser actions, reasoning, and results from a session |
-| `list_sessions` | List recent Browser Use sessions |
-| `list_browser_profiles` | List available authenticated browser profiles |
-
-**When to use Browser Use MCP (NOT Exa):**
-- Scraping full page content, not just searching for it
-- Extracting structured data (JSON) from complex/messy HTML (e.g. Minecraft wiki tables, addon schemas)
-- Crawling or traversing multiple linked pages on a site (e.g. crawling all Script API event pages)
-- Interacting with pages: clicking buttons, filling forms, navigating flows
-- Accessing protected/anti-bot sites where managed browser infrastructure helps
-- Taking screenshots or using live browser session evidence
-- Any task that requires a real browser session
-
-**When to use Exa instead:**
-- Quick doc lookups for `@minecraft/server`, `@minecraft/math`, etc.
-- Finding the right URL or page for a topic
-- Lightweight search queries
-
-**Workflow — Exa finds it, Browser Use MCP reads/interacts with it:**
-1. `web_search_exa` → find the right URL
-2. `run_session` → extract deep content, automate navigation, or collect structured data
-3. `get_session` / `get_session_messages` → inspect completion, output, live URL, and action trace
-4. `send_task` → continue in the same keep-alive browser session if follow-up interaction is needed
-5. `stop_session` → cleanly stop/destroy the Browser Use session when finished
-
-VIOLATION CHECK: If you manually scraped or parsed HTML when Browser Use MCP could have done it cleanly, you violated this rule.
-</rule>
-
 <rule name="no_comments" priority="high">
 DO NOT WRITE ANY COMMENTS OR JSDOCS unless explicitly requested.
 </rule>
@@ -606,12 +567,11 @@ POTENTIAL CONCERNS:
 13. Editing files from stale context without re-reading first
 14. Duplicating state instead of fixing the real problem
 15. Writing library/framework code from memory without searching Exa for current docs first
-16. Manually scraping or parsing HTML when Browser Use MCP could extract it cleanly
-17. Using try-catch in Minecraft Script API code
-18. Creating custom math functions when @minecraft/math has them available
-19. Using raw strings instead of @minecraft/vanilla-data typed identifiers
-20. Writing BP/RP JSON files without schema validation
-21. Adding attribution or AI-style report trailers to Git commit messages
+16. Using try-catch in Minecraft Script API code
+17. Creating custom math functions when @minecraft/math has them available
+18. Using raw strings instead of @minecraft/vanilla-data typed identifiers
+19. Writing BP/RP JSON files without schema validation
+20. Adding attribution or AI-style report trailers to Git commit messages
 </failure_modes_to_avoid>
 
 <meta>
@@ -621,18 +581,16 @@ You have unlimited stamina. The human does not. Use your persistence wisely — 
 
 **Priority Hierarchy:**
 1. **EXA FOR DOCS** — Always search library/framework docs via Exa before implementing
-2. **BROWSER USE MCP FOR WEB** — Use Browser Use MCP for scraping, crawling, structured extraction, and browser automation
-3. **VERIFY BEFORE DONE** — Type-check, lint, test before claiming success
-4. **PLAN BEFORE BUILD** — Spec and approval before implementation
-5. **GUARD CLAUSES** — Never use try-catch in Minecraft code
-6. **VANILLA-DATA** — Use typed identifiers from @minecraft/vanilla-data
-7. **MINECRAFT-MATH** — Use @minecraft/math library for math operations
-8. **JSON SCHEMAS** — Validate BP/RP JSONs with Rockide/schemas
-9. **NATURAL COMMITS** - Write human commit messages; no attribution or AI-style report trailers
+2. **VERIFY BEFORE DONE** — Type-check, lint, test before claiming success
+3. **PLAN BEFORE BUILD** — Spec and approval before implementation
+4. **GUARD CLAUSES** — Never use try-catch in Minecraft code
+5. **VANILLA-DATA** — Use typed identifiers from @minecraft/vanilla-data
+6. **MINECRAFT-MATH** — Use @minecraft/math library for math operations
+7. **JSON SCHEMAS** — Validate BP/RP JSONs with Rockide/schemas
+8. **NATURAL COMMITS** - Write human commit messages; no attribution or AI-style report trailers
 
 **Violation Checks:**
 - ❌ Wrote library/framework code without searching Exa first? → Violated Exa-for-docs rule
-- ❌ Manually scraped/parsed HTML when Browser Use MCP could do it? → Violated Browser-Use-MCP-for-web rule
 - ❌ Said "Done!" without running type-check/lint/tests? → Violated forced verification rule
 - ❌ Edited a file from memory after 10+ messages without re-reading? → Violated context decay rule
 - ❌ Started building without plan approval on a non-trivial task? → Violated plan-build separation

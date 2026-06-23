@@ -14,17 +14,7 @@ type McpServerConfig =
 function buildMcpServers(): Record<string, McpServerConfig> {
     return {
         exa: {
-            command: "npx",
-            args: ["-y", "exa-mcp-server"],
-            env: {
-                EXA_API_KEY: "YOUR_EXA_API_KEY",
-            },
-        },
-        "browser-use": {
-            url: "https://api.browser-use.com/v3/mcp",
-            headers: {
-                "x-browser-use-api-key": "YOUR_BROWSER_USE_API_KEY",
-            },
+            url: "https://mcp.exa.ai/mcp",
         },
         "sequential-thinking": {
             command: "npx",
