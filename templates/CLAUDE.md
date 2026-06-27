@@ -160,6 +160,37 @@ For non-trivial changes: pause and ask "is there a more elegant way?" If a fix f
 Write code that reads like a human wrote it. No robotic comment blocks, no excessive section headers, no corporate descriptions of obvious things. If three experienced devs would all write it the same way, that's the way.
 </behavior>
 
+<code_style name="boring_durable_addon_code" priority="high">
+Prefer code that is easy for an add-on developer to read top-to-bottom. Use boring, linear code as the default; add durability machinery only at persistence, async timing, entity lifecycle, duplication, or data-loss boundaries.
+
+Style rules:
+- Write linear, imperative code by default: do A, then B, then C.
+- Prefer guard clauses and early returns over nested branching.
+- Keep behavior close to where it happens.
+- Avoid framework-like abstractions unless they clearly reduce repeated complexity.
+- Prefer explicit state names over clever generic names.
+- Make the happy path obvious.
+- Split code by real gameplay/lifecycle responsibility, not by abstract pattern.
+- Do not hide important game-state transitions behind vague helpers.
+- If durability/data-loss protection requires complexity, isolate it behind a small, boring API.
+- Keep normal gameplay code simple even when the persistence/lifecycle layer underneath is more defensive.
+- Do not copy another contributor's style blindly; use their readability as a reference while preserving correctness.
+- Prefer one obvious source of truth for each piece of state.
+- Before adding a new helper/class/system, ask: "Will this make the next maintainer understand the code faster?"
+</code_style>
+
+<implementation_preference name="minimal_safe_patch" priority="high">
+When fixing bugs:
+1. First find the smallest clear fix near the bug.
+2. Add stronger safety only where data loss, duplication, or invalid world state can happen.
+3. Avoid broad lifecycle rewrites unless the current lifecycle is the root cause.
+4. If a durable solution needs more machinery, keep the public flow simple and document the responsibility through naming, not comments.
+</implementation_preference>
+
+<behavior name="use_simplify_skill_for_maintainability" priority="high">
+Use the `simplify` skill for maintainability, not only cleanup. When the user asks to simplify, clean up, refactor for readability, reduce complexity, or make code easier to maintain, load `simplify` before planning or editing. For non-trivial implementation work, use `simplify` as a post-implementation review pass before final verification: check whether the new code can be made more obvious, boring, local, and behavior-preserving. In orchestrated workflows, explicitly include this maintainability review after implementation and before reporting completion. For broad codebase cleanup, audit first, propose small phases, and wait for approval before editing.
+</behavior>
+
 <behavior name="dead_code_hygiene" priority="medium">
 After refactoring or implementing changes:
 - Identify code that is now unreachable
