@@ -246,8 +246,10 @@ PLAN:
 ALWAYS use Exa to search the latest Minecraft Script API documentation before implementing. APIs change every major update — never trust memory.
 </guideline>
 
-<guideline name="no_try_catch" priority="critical">
-Do NOT use `try-catch` blocks (overhead concerns). Use **guard clauses** for error prevention instead.
+<guideline name="guard_first_error_handling" priority="critical">
+Prefer **guard clauses** for predictable invalid state: missing values, unloaded or invalid entities, optional components, permissions, and known preconditions. `throw`, `try`, and `catch` are allowed when they are truly necessary: APIs can fail despite correct guards, you are crossing IO/persistence/parsing/async boundaries, or you need cleanup, recovery, or clearer error context.
+
+Keep `catch` blocks narrow and purposeful. Do not use `try-catch` as normal control flow, to hide mistakes, or where a simple guard makes the failure impossible.
 
 ```typescript
 // ✅ CORRECT: Use guard clauses
@@ -257,12 +259,20 @@ function processBlock(block: Block | undefined): void {
   const permutation = block.permutation;
 }
 
-// ❌ WRONG: Using try-catch
-function processBlockBad(block: Block): void {
+// ✅ CORRECT: Use try-catch only at a real failure boundary
+function loadSavedConfig(rawConfig: string): AddonConfig {
   try {
-    const permutation = block.permutation;
-  } catch (e) {
-    // Overhead!
+    return JSON.parse(rawConfig) as AddonConfig;
+  } catch (error) {
+    throw new Error("Saved addon config is not valid JSON", { cause: error });
+  }
+}
+
+// ❌ WRONG: Catching instead of checking known state
+function processBlockBad(block: Block | undefined): void {
+  try {
+    const permutation = block!.permutation;
+  } catch {
   }
 }
 ```
@@ -395,7 +405,7 @@ ALWAYS use Minecraft Bedrock Edition JSON Schemas for validation of BP/RP JSON f
 - Use explicit return types on functions
 - Use `readonly` for immutable properties
 - Prefer interfaces over type aliases for object shapes
-- Use `undefined` checks instead of try-catch
+- Use `undefined` checks and guard clauses before reaching for try-catch
 </best_practices>
 
 <best_practices name="script_api">
@@ -598,7 +608,7 @@ POTENTIAL CONCERNS:
 13. Editing files from stale context without re-reading first
 14. Duplicating state instead of fixing the real problem
 15. Writing library/framework code from memory without searching Exa for current docs first
-16. Using try-catch in Minecraft Script API code
+16. Using broad try-catch in Minecraft Script API code where guard clauses would be clearer
 17. Creating custom math functions when @minecraft/math has them available
 18. Using raw strings instead of @minecraft/vanilla-data typed identifiers
 19. Writing BP/RP JSON files without schema validation
@@ -614,7 +624,7 @@ You have unlimited stamina. The human does not. Use your persistence wisely — 
 1. **EXA FOR DOCS** — Always search library/framework docs via Exa before implementing
 2. **VERIFY BEFORE DONE** — Type-check, lint, test before claiming success
 3. **PLAN BEFORE BUILD** — Spec and approval before implementation
-4. **GUARD CLAUSES** — Never use try-catch in Minecraft code
+4. **GUARD CLAUSES FIRST** — Prefer guards; use throw/try-catch only at real failure boundaries
 5. **VANILLA-DATA** — Use typed identifiers from @minecraft/vanilla-data
 6. **MINECRAFT-MATH** — Use @minecraft/math library for math operations
 7. **JSON SCHEMAS** — Validate BP/RP JSONs with Rockide/schemas
@@ -625,7 +635,7 @@ You have unlimited stamina. The human does not. Use your persistence wisely — 
 - ❌ Said "Done!" without running type-check/lint/tests? → Violated forced verification rule
 - ❌ Edited a file from memory after 10+ messages without re-reading? → Violated context decay rule
 - ❌ Started building without plan approval on a non-trivial task? → Violated plan-build separation
-- ❌ Used try-catch in Minecraft code? → Violated no-try-catch rule
+- ❌ Used broad try-catch where guards would work? → Violated guard-first error handling
 - ❌ Made changes without running `tsc --noEmit`? → Violated TypeScript verification
 - ❌ Created custom math function without checking @minecraft/math? → Violated library-first rule
 - ❌ Used raw string like `"inventory"` or `"minecraft:wolf"`? → Violated vanilla-data rule
