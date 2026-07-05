@@ -13,6 +13,7 @@
         "dist/spawnpack.js",
         "templates/CLAUDE.md",
         "templates/AGENTS.md",
+        "templates/filters/typegen/main.js",
         "README.md",
         "LICENSE",
         "package.json"

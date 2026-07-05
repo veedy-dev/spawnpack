@@ -29,7 +29,7 @@ generation.start(teal("Generating your Bedrock addon scaffold..."));
 await generateProject(config);
 
 if (config.aiSetup !== "none") {
-    await setupAi(config.destination, config.aiSetup);
+    await setupAi(config.destination, config.aiSetup, config.installPonytail);
 }
 
 await runProvisioning(config);

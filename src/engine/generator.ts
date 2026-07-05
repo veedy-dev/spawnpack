@@ -16,11 +16,20 @@ import {
     generatePackageJson,
     generateReadme,
     generateRglConfig,
+    generateRolldownFilterMain,
+    generateRolldownFilterPackageJson,
+    generateScriptsTsConfig,
     generateSoundDefinitions,
     generateSoundsJson,
     generateTerrainTexture,
     generateTsConfig,
+    generateTypegenFilterPackageJson,
 } from "./templates.js";
+
+const TYPEGEN_FILTER_TEMPLATE_URLS = [
+    new URL("../../templates/filters/typegen/main.js", import.meta.url),
+    new URL("../templates/filters/typegen/main.js", import.meta.url),
+] as const;
 
 const BP_NAMESPACED_DIRECTORIES = [
     "animation_controllers",
@@ -64,6 +73,22 @@ async function writeJsonFile(filePath: string, value: unknown): Promise<void> {
 
 async function writeTextFile(filePath: string, value: string): Promise<void> {
     await writeFile(filePath, value, "utf8");
+}
+
+async function createTypegenFilterMain(): Promise<string> {
+    for (const templateUrl of TYPEGEN_FILTER_TEMPLATE_URLS) {
+        const templateFile = Bun.file(templateUrl);
+        const exists = await templateFile.exists().then(
+            value => value,
+            () => false,
+        );
+
+        if (exists) {
+            return await templateFile.text();
+        }
+    }
+
+    return await Bun.file(TYPEGEN_FILTER_TEMPLATE_URLS[0]).text();
 }
 
 function getScopedContentDirectory(basePath: string, folder: string, config: ProjectConfig): string {
@@ -139,6 +164,10 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
         }
     }
 
+    if (config.useRgl && config.scripting !== "none") {
+        directories.push(join(destination, "filters"), join(destination, "filters", "rolldown"), join(destination, "filters", "typegen"));
+    }
+
     await Promise.all(
         directories
             .filter(shouldCreateDirectory)
@@ -162,7 +191,7 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
         writeTextFile(join(rpPath, "textures", "flipbook_textures.json"), "[]"),
         writeTextFile(join(bpPath, "texts", "languages.json"), '["en_US"]'),
         writeTextFile(join(rpPath, "texts", "languages.json"), '["en_US"]'),
-        writeTextFile(join(destination, ".gitignore"), generateGitignore()),
+        writeTextFile(join(destination, ".gitignore"), generateGitignore(config)),
         writeTextFile(join(destination, "README.md"), generateReadme(config)),
     ];
 
@@ -175,15 +204,25 @@ export async function generateProject(config: ProjectConfig): Promise<void> {
     }
 
     if (config.scripting === "typescript") {
+        const tsconfigWrite = config.useRgl
+            ? writeJsonFile(join(dataScriptsPath, "tsconfig.json"), generateScriptsTsConfig())
+            : writeJsonFile(join(destination, "tsconfig.json"), generateTsConfig(config));
+
         writes.push(
-            writeJsonFile(join(destination, "tsconfig.json"), generateTsConfig(config)),
+            tsconfigWrite,
             writeJsonFile(join(destination, "dprint.json"), generateDprintConfig()),
             writeTextFile(join(dataScriptsPath, "main.ts"), generateMainTs(config)),
         );
     }
 
     if (config.scripting !== "none" && config.useRgl) {
-        writes.push(writeJsonFile(join(destination, "config.json"), generateRglConfig(config)));
+        writes.push(
+            writeJsonFile(join(destination, "config.json"), generateRglConfig(config)),
+            writeTextFile(join(destination, "filters", "rolldown", "main.js"), generateRolldownFilterMain(config)),
+            writeJsonFile(join(destination, "filters", "rolldown", "package.json"), generateRolldownFilterPackageJson()),
+            writeJsonFile(join(destination, "filters", "typegen", "package.json"), generateTypegenFilterPackageJson()),
+            writeTextFile(join(destination, "filters", "typegen", "main.js"), await createTypegenFilterMain()),
+        );
     }
 
     await Promise.all(writes);

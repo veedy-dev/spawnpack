@@ -235,7 +235,7 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         message: pc.bold("AI setup"),
         initialValue: "none",
         options: [
-            { value: "none", label: "None", hint: "no AI docs or MCP config" },
+            { value: "none", label: "None", hint: "No AI configuration setup" },
             { value: "claude", label: "Claude", hint: "generate CLAUDE.md and .mcp.json" },
             { value: "other", label: "Other", hint: "generate AGENTS.md and .mcp.json" },
         ],
@@ -243,6 +243,21 @@ export async function runWizard(): Promise<ProjectConfig | null> {
 
     if (isCancel(aiSetup)) {
         return abortWizard();
+    }
+
+    let installPonytail = false;
+
+    if (aiSetup !== "none") {
+        const ponytailChoice = await confirm({
+            message: `${pc.bold("Install ponytail plugin?")} ${pc.dim("Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote. https://github.com/DietrichGebert/ponytail")}`,
+            initialValue: true,
+        });
+
+        if (isCancel(ponytailChoice)) {
+            return abortWizard();
+        }
+
+        installPonytail = ponytailChoice;
     }
 
     const config: ProjectConfig = {
@@ -257,6 +272,7 @@ export async function runWizard(): Promise<ProjectConfig | null> {
         useRgl: scripting === "none" ? false : useRgl,
         aiSetup,
         installRockide,
+        installPonytail,
     };
 
     showReview(config);

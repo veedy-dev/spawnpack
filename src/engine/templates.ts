@@ -33,7 +33,9 @@ export function generatePackageJson(config: ProjectConfig, versions: MinecraftDe
             scripts.build = "tsc --project tsconfig.json";
         }
 
-        scripts.typecheck = "tsc --project tsconfig.json --noEmit";
+        scripts.typecheck = config.useRgl
+            ? "tsc --project data/scripts/tsconfig.json --noEmit"
+            : "tsc --project tsconfig.json --noEmit";
         scripts.format = "dprint fmt";
     }
 
@@ -45,6 +47,7 @@ export function generatePackageJson(config: ProjectConfig, versions: MinecraftDe
         name: `${config.identifier}-${config.projectId}`,
         version: PACK_VERSION,
         private: true,
+        ...(config.useRgl ? { workspaces: ["./filters/*"] } : {}),
         type: "module",
         scripts,
         dependencies: getSelectedScriptDependencies(config, versions),
@@ -113,7 +116,7 @@ export function generateDprintConfig(): Record<string, unknown> {
 
 export function generateRglConfig(config: ProjectConfig): Record<string, unknown> {
     return {
-        $schema: "https://raw.githubusercontent.com/ink0rr/rgl-schemas/main/config/v1.0.json",
+        $schema: "https://raw.githubusercontent.com/ink0rr/rgl-schemas/main/config/v1.1.json",
         author: config.author,
         name: config.projectName,
         packs: {
@@ -123,38 +126,95 @@ export function generateRglConfig(config: ProjectConfig): Record<string, unknown
         regolith: {
             dataPath: "./data",
             filterDefinitions: {
-                esbuild: {
-                    url: "github.com/ink0rr/regolith-filters",
-                    version: VERSIONS.esbuildFilter,
+                typegen: {
+                    runWith: "nodejs",
+                    script: "./filters/typegen/main.js",
+                },
+                rolldown: {
+                    runWith: "nodejs",
+                    script: "./filters/rolldown/main.js",
                 },
             },
             profiles: {
                 default: {
                     export: { target: "development" },
                     filters: [
-                        {
-                            filter: "esbuild",
-                            settings: {
-                                outfile: `./BP/${getScriptEntryPath(config)}`,
-                                sourcemap: true,
-                                minify: false,
-                            },
-                        },
+                        { filter: "typegen" },
+                        { filter: "rolldown" },
                     ],
                 },
                 build: {
                     export: { target: "local" },
                     filters: [
-                        {
-                            filter: "esbuild",
-                            settings: {
-                                outfile: `./BP/${getScriptEntryPath(config)}`,
-                                minify: true,
-                            },
-                        },
+                        { filter: "typegen" },
+                        { filter: "rolldown", arguments: ["--prod"] },
+                    ],
+                },
+                preview: {
+                    export: { target: "development" },
+                    filters: [
+                        { profile: "build" },
                     ],
                 },
             },
+        },
+    };
+}
+
+function getRolldownExternalModules(config: ProjectConfig): string[] {
+    return ["@minecraft/server", ...(config.scriptPackages.serverUi ? ["@minecraft/server-ui"] : [])];
+}
+
+export function generateRolldownFilterMain(config: ProjectConfig): string {
+    const external = getRolldownExternalModules(config).map(moduleName => JSON.stringify(moduleName)).join(", ");
+    const outfile = `./BP/${getScriptEntryPath(config)}`;
+
+    return `import { build, defineConfig } from "rolldown";
+
+const arg = process.argv[2];
+
+const config = defineConfig({
+\texternal: [${external}],
+\tinput: "./data/scripts/main.ts",
+\toutput: {
+\t\tformat: "esm",
+\t\tfile: ${JSON.stringify(outfile)},
+\t\tsourcemap: true,
+\t},
+\ttsconfig: "./data/scripts/tsconfig.json",
+});
+
+if (arg === "--prod") {
+\tconfig.output.minify = true;
+\tconfig.output.sourcemap = false;
+\tconfig.transform = {
+\t\tdropLabels: ["DEBUG"],
+\t};
+}
+
+await build(config);
+`;
+}
+
+export function generateRolldownFilterPackageJson(): Record<string, unknown> {
+    return {
+        name: "rolldown-filter",
+        private: true,
+        type: "module",
+        dependencies: {
+            rolldown: VERSIONS.rolldown,
+        },
+    };
+}
+
+export function generateTypegenFilterPackageJson(): Record<string, unknown> {
+    return {
+        name: "typegen",
+        private: true,
+        type: "module",
+        dependencies: {
+            "es-toolkit": VERSIONS.esToolkit,
+            "jsonc-parser": VERSIONS.jsoncParser,
         },
     };
 }
@@ -185,12 +245,77 @@ pack.description=Generated with Spawnpack
 `;
 }
 
-export function generateGitignore(): string {
-    return `node_modules/
-dist/
-.logs/
-*.zip
-`;
+export function generateScriptsTsConfig(): Record<string, unknown> {
+    return {
+        compilerOptions: {
+            lib: [
+                "ES2015",
+                "ES2016.Array.Include",
+                "ES2017.ArrayBuffer",
+                "ES2017.Date",
+                "ES2017.Object",
+                "ES2017.String",
+                "ES2017.TypedArrays",
+                "ES2018.AsyncIterable",
+                "ES2018.AsyncGenerator",
+                "ES2018.Promise",
+                "ES2018.Regexp",
+                "ES2019.Array",
+                "ES2019.Object",
+                "ES2019.String",
+                "ES2019.Symbol",
+                "ES2020.BigInt",
+                "ES2020.Date",
+                "ES2020.Number",
+                "ES2015.Promise",
+                "ES2020.String",
+                "ES2020.Promise",
+                "ES2020.Symbol.WellKnown",
+                "ES2021.Promise",
+                "ES2021.String",
+                "ES2022.Array",
+                "ES2022.Error",
+                "ES2022.Object",
+                "ES2022.RegExp",
+                "ES2022.String",
+                "ES2023.Array",
+                "ES2023.Collection",
+                "ES2024.ArrayBuffer",
+                "ES2024.Collection",
+                "ES2024.Object",
+                "ES2024.Promise",
+                "ES2024.Regexp",
+                "ES2024.String",
+            ],
+            target: "es2024",
+            module: "es2022",
+            moduleDetection: "force",
+            allowJs: true,
+            moduleResolution: "bundler",
+            noEmit: true,
+            strict: true,
+            skipLibCheck: true,
+            noFallthroughCasesInSwitch: true,
+            noImplicitOverride: true,
+            noUnusedLocals: true,
+            noUnusedParameters: true,
+            paths: { "~/*": ["./*"] },
+        },
+    };
+}
+
+export function generateGitignore(config: ProjectConfig): string {
+    const lines = ["node_modules/", "dist/", ".logs/", "*.zip"];
+
+    if (config.useRgl) {
+        lines.push("/.regolith", "/build");
+    }
+
+    if (config.useRgl && config.scripting === "typescript") {
+        lines.push("data/scripts/generated_types.ts");
+    }
+
+    return `${lines.join("\n")}\n`;
 }
 
 export function generateReadme(config: ProjectConfig): string {
@@ -211,8 +336,13 @@ export function generateReadme(config: ProjectConfig): string {
                 ? "2. Write your gameplay scripts in `data/scripts/`.\n3. Run `bun run build` or `npm run build` to compile TypeScript into `packs/BP/scripts/`."
                 : "2. Write your gameplay scripts in `packs/BP/scripts/` and let Minecraft copy the pack into `com.mojang`.";
     const aiDocFilename = getAiDocFilename(config.aiSetup);
+    const ponytailAiLine = config.installPonytail
+        ? config.aiSetup === "other"
+            ? "Ponytail is enabled via `opencode.json`.\n\n"
+            : "To enable ponytail in Claude Code, run `/plugin marketplace add DietrichGebert/ponytail` then `/plugin install ponytail@ponytail`.\n\n"
+        : "";
     const aiSection = aiDocFilename !== null
-        ? `## AI Tooling\n\nSpawnpack generated \`${aiDocFilename}\` and \`.mcp.json\` for AI-assisted development. The configured MCP servers work out of the box — no API keys required.\n\nExa's hosted MCP runs on a rate-limited free tier. If you need higher limits, you can add your own Exa API key to \`.mcp.json\` (optional): https://dashboard.exa.ai/api-keys\n\n`
+        ? `## AI Tooling\n\nSpawnpack generated \`${aiDocFilename}\` and \`.mcp.json\` for AI-assisted development. The configured MCP servers work out of the box — no API keys required.\n\nExa's hosted MCP runs on a rate-limited free tier. If you need higher limits, you can add your own Exa API key to \`.mcp.json\` (optional): https://dashboard.exa.ai/api-keys\n\n${ponytailAiLine}`
         : "";
     const scriptPackageSection = config.scripting !== "none"
         ? `## Script Packages\n\nSelected npm packages are installed through \`package.json\`. Only runtime Script API modules such as \`@minecraft/server\` and \`@minecraft/server-ui\` are written to \`packs/BP/manifest.json\`; npm-side libraries such as \`@minecraft/vanilla-data\` and \`@minecraft/math\` are imported and bundled from \`package.json\`.\n\n`
@@ -247,6 +377,7 @@ ${scriptPackageSection}${config.useRgl
 - \`rgl watch\` rebuilds your scripts and exports your add-on while you work.
 - \`rgl run\` builds a development export once.
 - \`rgl run build\` creates a production-ready build.
+- \`typegen\` auto-generates typed custom IDs (\`BlockId\`/\`EntityId\`/\`ItemId\`) into \`data/scripts/generated_types.ts\` on each build.
 
 The generated \`config.json\` already points the script bundle to \`${runtimeEntry}\`.
 

@@ -168,8 +168,22 @@ export function showFolderTree(config: ProjectConfig): string {
 
     if (config.scripting === "typescript") {
         lines.push(pc.dim("├─ data/scripts/"));
-        lines.push(pc.dim("│  └─ main.ts"));
-        lines.push(pc.dim("├─ tsconfig.json"));
+
+        if (config.useRgl) {
+            lines.push(pc.dim("│  ├─ main.ts"));
+            lines.push(pc.dim("│  └─ tsconfig.json"));
+            lines.push(pc.dim("├─ filters/"));
+            lines.push(pc.dim("│  ├─ rolldown/"));
+            lines.push(pc.dim("│  │  ├─ main.js"));
+            lines.push(pc.dim("│  │  └─ package.json"));
+            lines.push(pc.dim("│  └─ typegen/"));
+            lines.push(pc.dim("│     ├─ main.js"));
+            lines.push(pc.dim("│     └─ package.json"));
+        } else {
+            lines.push(pc.dim("│  └─ main.ts"));
+            lines.push(pc.dim("├─ tsconfig.json"));
+        }
+
         lines.push(pc.dim("├─ dprint.json"));
     }
 
@@ -190,6 +204,10 @@ export function showFolderTree(config: ProjectConfig): string {
     if (aiDocFilename !== null) {
         lines.push(pc.dim(`├─ ${aiDocFilename}`));
         lines.push(pc.dim("├─ .mcp.json"));
+
+        if (config.installPonytail && config.aiSetup === "other") {
+            lines.push(pc.dim("├─ opencode.json"));
+        }
     }
 
     lines.push(pc.dim("├─ .gitignore"));
@@ -226,6 +244,9 @@ export function showReview(config: ProjectConfig): void {
         `${border}  ${pc.dim(padLabel("rgl:"))} ${formatToggle(config.useRgl)}`,
         `${border}  ${pc.dim(padLabel("Rockide:"))} ${formatToggle(config.installRockide)}`,
         `${border}  ${pc.dim(padLabel("AI Setup:"))} ${formatValue(getAiSetupLabel(config.aiSetup))}`,
+        ...(config.aiSetup !== "none"
+            ? [`${border}  ${pc.dim(padLabel("Ponytail:"))} ${formatToggle(config.installPonytail)}`]
+            : []),
         "",
         `${border}  ${teal(pc.bold("Planned structure"))}`,
         ...showFolderTree(config).split("\n").map(line => `${border}  ${line}`),
@@ -267,6 +288,18 @@ export function showPostGeneration(config: ProjectConfig): void {
     if (config.aiSetup !== "none") {
         usefulCommands.push("");
         usefulCommands.push(`${teal(pc.bold("Note"))} ${pc.dim(".mcp.json is ready to use — the configured MCP servers need no API keys.")}`);
+    }
+
+    if (config.installPonytail) {
+        usefulCommands.push("");
+
+        if (config.aiSetup === "claude") {
+            usefulCommands.push(`${teal(pc.bold("Ponytail"))} ${pc.dim("Run inside Claude Code:")}`);
+            usefulCommands.push(`  ${pc.cyan("/plugin marketplace add DietrichGebert/ponytail")}`);
+            usefulCommands.push(`  ${pc.cyan("/plugin install ponytail@ponytail")}`);
+        } else {
+            usefulCommands.push(`${teal(pc.bold("Ponytail"))} ${pc.dim("Added to opencode.json — installs on next opencode run.")}`);
+        }
     }
 
     log.message([...nextSteps, "", ...usefulCommands].join("\n"), {

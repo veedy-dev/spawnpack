@@ -10,6 +10,7 @@ export interface ProjectConfig {
     useRgl: boolean;
     aiSetup: AiSetupChoice;
     installRockide: boolean;
+    installPonytail: boolean;
 }
 
 export type ScriptingChoice = "none" | "javascript" | "typescript";
@@ -66,7 +67,9 @@ export interface MinecraftDependencyVersions {
 export const VERSIONS = {
     minEngineVersion: [1, 26, 0] as [number, number, number],
     manifestFormat: 2,
-    esbuildFilter: "0.3.0",
+    rolldown: "^1.0.0-beta.56",
+    esToolkit: "^1.43.0",
+    jsoncParser: "^3.3.1",
 } as const;
 
 export const DEFAULT_MINECRAFT_DEPENDENCY_VERSIONS: MinecraftDependencyVersions = {

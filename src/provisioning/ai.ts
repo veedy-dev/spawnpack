@@ -8,6 +8,7 @@ const AI_EXCLUDE_LINES = [
     "/CLAUDE.md",
     "/AGENTS.md",
     "/.mcp.json",
+    "/opencode.json",
     "/.claude/",
 ];
 
@@ -94,7 +95,38 @@ export async function setupGitExcludes(projectPath: string): Promise<void> {
     );
 }
 
-export async function setupAi(projectPath: string, aiSetup: AiSetupChoice): Promise<void> {
+async function writeOpencodePluginConfig(projectPath: string): Promise<void> {
+    const configPath = join(projectPath, "opencode.json");
+    const pluginId = "@dietrichgebert/ponytail";
+    const file = Bun.file(configPath);
+    const exists = await file.exists().then(value => value, () => false);
+    let nextConfig: Record<string, unknown> = {
+        $schema: "https://opencode.ai/config.json",
+        plugin: [pluginId],
+    };
+
+    if (exists) {
+        try {
+            const parsed = await file.json() as Record<string, unknown>;
+            const plugins = Array.isArray(parsed.plugin) ? [...parsed.plugin as string[]] : [];
+
+            if (!plugins.includes(pluginId)) {
+                plugins.push(pluginId);
+            }
+
+            nextConfig = { ...parsed, plugin: plugins };
+        } catch {
+            // fall back to the default config on parse failure
+        }
+    }
+
+    await Bun.write(configPath, `${JSON.stringify(nextConfig, null, 4)}\n`).then(
+        () => undefined,
+        () => undefined,
+    );
+}
+
+export async function setupAi(projectPath: string, aiSetup: AiSetupChoice, installPonytail: boolean): Promise<void> {
     if (aiSetup === "none") {
         return;
     }
@@ -102,4 +134,8 @@ export async function setupAi(projectPath: string, aiSetup: AiSetupChoice): Prom
     await generateAiDoc(projectPath, aiSetup);
     await setupGitExcludes(projectPath);
     await generateMcpConfig(projectPath);
+
+    if (installPonytail && aiSetup === "other") {
+        await writeOpencodePluginConfig(projectPath);
+    }
 }
