@@ -246,6 +246,10 @@ PLAN:
 ALWAYS use Exa to search the latest Minecraft Script API documentation before implementing. APIs change every major update — never trust memory.
 </guideline>
 
+<guideline name="regolith_compilation_output" priority="high">
+When working in a Regolith project and you need to inspect compilation output, check `.regolith/tmp` instead of the output paths printed by Regolith. Entries inside `.regolith/tmp` may be symlinks; read them through those paths without canonicalizing or resolving them so you do not trigger unnecessary permission requests.
+</guideline>
+
 <guideline name="guard_first_error_handling" priority="critical">
 Prefer **guard clauses** for predictable invalid state: missing values, unloaded or invalid entities, optional components, permissions, and known preconditions. `throw`, `try`, and `catch` are allowed when they are truly necessary: APIs can fail despite correct guards, you are crossing IO/persistence/parsing/async boundaries, or you need cleanup, recovery, or clearer error context.
 
