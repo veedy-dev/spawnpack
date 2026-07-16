@@ -40,6 +40,29 @@ VIOLATION CHECK: If you wrote library/framework code from memory without searchi
 DO NOT WRITE ANY COMMENTS OR JSDOCS unless explicitly requested.
 </rule>
 
+<rule name="guard_before_try_catch" priority="critical">
+**Default:** Do not add `try-catch` around normal synchronous application code or Minecraft Script API calls. Validate known preconditions with guard clauses, then call the API directly.
+
+Before writing any `try-catch`, ALL of these must be true:
+1. A specific operation has a documented, observed, or otherwise evidenced exception that available guards cannot prevent. "It might throw" is not evidence.
+2. The `catch` performs necessary recovery, cleanup, boundary translation, or adds useful context before rethrowing.
+3. The `try` block is the narrowest possible scope—normally one genuinely fallible operation.
+
+**Forbidden:**
+- Speculative `try-catch` added "for safety" without evidence of an unavoidable exception.
+- Empty `catch` blocks or catches whose only action is `return`, `continue`, or silently ignore the failure.
+- Wrapping an entire event handler, tick callback, gameplay function, loop body, or multi-step state transition.
+- Using exceptions to detect missing values, invalid entities, optional components, permissions, unloaded blocks, or other checkable state.
+- Catching programmer errors such as bad assumptions, incorrect types, invalid property access, or broken invariants merely to keep execution going.
+- Repeated or nested `try-catch` in per-tick or hot gameplay paths when a guard can prevent the failure.
+
+A dormant `try` block is generally not the main performance problem; thrown exceptions are expensive, especially in hot paths. The primary reasons to avoid unnecessary catches are that they hide defects, duplicate cleanup, obscure control flow, and turn exceptions into normal branching.
+
+Before reporting completion, search every changed file for `try` and `catch`. For each new or modified catch, identify the specific unguardable failure and the concrete recovery it performs. If you cannot do both, remove the `try-catch` and use guards or direct code instead.
+
+VIOLATION CHECK: If a catch was added without an evidenced unguardable exception and meaningful recovery, this rule was violated.
+</rule>
+
 <rule name="forced_verification" priority="critical">
 Your internal tools mark file writes as successful if bytes hit disk. They do not check if the code compiles. You are FORBIDDEN from reporting a task as complete until you have:
 - Run the project's type-checker / compiler in strict mode (`tsc --noEmit` for TypeScript)
@@ -251,32 +274,40 @@ When working in a Regolith project and you need to inspect compilation output, c
 </guideline>
 
 <guideline name="guard_first_error_handling" priority="critical">
-Prefer **guard clauses** for predictable invalid state: missing values, unloaded or invalid entities, optional components, permissions, and known preconditions. `throw`, `try`, and `catch` are allowed when they are truly necessary: APIs can fail despite correct guards, you are crossing IO/persistence/parsing/async boundaries, or you need cleanup, recovery, or clearer error context.
+Use **guard clauses** for every predictable invalid state: missing values, unloaded or invalid entities, optional components, permissions, and known preconditions. Once guards pass, call normal Script API methods directly. Do not wrap calls merely because an API could theoretically throw.
 
-Keep `catch` blocks narrow and purposeful. Do not use `try-catch` as normal control flow, to hide mistakes, or where a simple guard makes the failure impossible.
+Use `try-catch` only at a proven failure boundary—such as parsing untrusted data, IO/persistence, cleanup that must run after failure, or a documented/observed API exception with no available precondition check. Keep the `try` block around only the fallible operation. Catching an error requires a deliberate recovery action; silent continuation is not recovery.
+
+Decision test before adding `try-catch`:
+1. Can a value, validity flag, component, permission, or other precondition be checked first? Use a guard and do not catch.
+2. Is the exception merely hypothetical, with no documentation or observed stack trace? Do not catch.
+3. Can this scope recover, clean up, translate the boundary error, or rethrow with useful context? If not, let the error remain visible.
+4. Is the `try` block larger than the single fallible operation? Narrow it.
 
 ```typescript
 // ✅ CORRECT: Use guard clauses
-function processBlock(block: Block | undefined): void {
-  if (!block) return;
-  if (!block.isValid) return;
-  const permutation = block.permutation;
+function updatePlayerRotation(player: Player | undefined, rotation: Vector2): void {
+  if (!player?.isValid) return;
+  player.setRotation(rotation);
 }
 
 // ✅ CORRECT: Use try-catch only at a real failure boundary
-function loadSavedConfig(rawConfig: string): AddonConfig {
+function loadSavedConfig(rawConfig: string): AddonConfig | undefined {
   try {
     return JSON.parse(rawConfig) as AddonConfig;
   } catch (error) {
-    throw new Error("Saved addon config is not valid JSON", { cause: error });
+    console.warn("Saved addon config is not valid JSON", error);
+    return undefined;
   }
 }
 
-// ❌ WRONG: Catching instead of checking known state
-function processBlockBad(block: Block | undefined): void {
+// ❌ WRONG: Speculative catches around normal API calls
+function refreshPlayerRotationBad(player: Player): void {
   try {
-    const permutation = block!.permutation;
+    const requestedRotation = player.getRotation();
+    player.setRotation(requestedRotation);
   } catch {
+    return;
   }
 }
 ```
