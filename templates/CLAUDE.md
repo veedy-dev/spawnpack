@@ -85,6 +85,14 @@ When suggesting or writing Git commit messages:
 
 VIOLATION CHECK: If a commit message looks like an AI-generated report instead of a normal developer commit, rewrite it.
 </rule>
+
+<rule name="no_agent_memory_files" priority="critical">
+Do not create or update repository files solely for agent memory, self-improvement, corrections, session continuity, or working notes unless the user explicitly requests that file. This includes `gotchas.md`, `lessons.md`, `memory.md`, `context-log.md`, correction logs, and similar sidecar documents.
+
+Keep temporary lessons and working state in the current conversation, harness-native todos, session continuation, or compaction. If a correction reveals an enduring project rule, propose a concise change to an existing canonical instruction file such as `AGENTS.md` or `CLAUDE.md`; edit it only with explicit user approval.
+
+VIOLATION CHECK: If you created a project file mainly so the agent could remember something later without the user requesting it, remove it before completion.
+</rule>
 </critical_rules>
 
 <pre_work>
@@ -541,9 +549,9 @@ Never delete a file without verifying nothing else references it. Never undo cod
 The file system is your most powerful general-purpose tool. Stop holding everything in context. Use it actively:
 
 - Do not blindly dump large files into context. Search, find symbols, and selectively read what you need. Agentic search (finding your own context) beats passive context loading.
-- Write intermediate results to files. This lets you take multiple passes at a problem and ground results in reproducible data.
-- Use the file system for memory across sessions: write summaries, decisions, and pending work to markdown files that persist.
-- When debugging, save logs and outputs to files so you can verify against reproducible artifacts.
+- Keep intermediate notes in conversation or harness-native task state. If a tool requires a file, use an existing project-designated scratch location or an OS temporary directory and remove the artifact when finished.
+- Do not use the repository as agent memory. Persistent project documentation must serve maintainers, fit an existing canonical document, and require user approval.
+- When debugging, keep reproducible logs outside the repository unless logs are requested deliverables or the project already defines a location for them.
 - Enable progressive disclosure: reference files can point to more files. Structure reduces context pressure. The folder structure itself is a form of context engineering.
 </file_system_as_state>
 
@@ -553,7 +561,7 @@ Your system prompt, tools, and CLAUDE.md are cached as a prefix. Breaking this p
 - Do not request model switches mid-session. Delegate to a sub-agent if a subtask needs a different model.
 - Do not suggest adding or removing tools mid-conversation.
 - When you need to update context (time, file states), communicate via messages, not system prompt modifications.
-- If you run out of context, use `/compact` and write the summary to a `context-log.md` so we can fork cleanly without cache penalty.
+- If you run out of context, use the harness's native compaction and session continuation. Do not create a repository summary file for this purpose.
 </prompt_cache_awareness>
 
 <session_continuity>
@@ -561,8 +569,8 @@ Always prefer `--continue` to resume the last session rather than starting fresh
 </session_continuity>
 
 <self_improvement>
-<directive name="mistake_logging" priority="high">
-After ANY correction from the user, log the pattern to a `gotchas.md` file. Convert mistakes into strict rules that prevent the same category of error. Review past lessons at session start before beginning new work.
+<directive name="correction_learning" priority="high">
+After a correction from the user, apply it immediately and retain it in current session context. Do not create a lesson, gotcha, memory, or correction file. If the correction should become a lasting project rule, propose an edit to the existing canonical instruction file and wait for explicit approval before changing it.
 </directive>
 
 <directive name="bug_autopsy" priority="medium">
