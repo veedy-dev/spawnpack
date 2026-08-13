@@ -12,27 +12,22 @@
 - Ask a question only when repository evidence and documentation cannot resolve choices with meaningfully different outcomes.
 - Do not add unrelated features, refactors, abstractions, dependencies, documentation, or cleanup.
 - Reuse existing helpers and patterns first, then the standard library or platform, then already-installed dependencies.
-- Do not add a production dependency without explicit user approval.
+- You may suggest a production dependency when it is the smallest suitable solution, but explain why and ask the user before adding it.
 - Keep changes local and migrate every affected caller. Remove obsolete code introduced by the changed path; do not leave compatibility shims unless requested.
 
 ## Documentation lookup
 
-- Check installed package versions and existing project usage before searching external documentation.
-- Use current official documentation through Context7 or Exa when an API is unfamiliar, version-sensitive, or has changed. Do not research ordinary business logic or established local patterns.
-- Verify current documentation before adding or changing Minecraft Script API members, events, signatures, or configuration syntax.
+- Before planning or implementing any Minecraft Bedrock change, verify the current relevant documentation. This includes Script API and BP/RP JSON formats, components, events, schemas, MoLang, manifests, commands, animations, and pack behavior.
+- Prefer Exa MCP for documentation and web research. If Exa is unavailable, use built-in web search or browsing. Use Context7 only as a last resort because its indexed documentation may lag behind current releases.
+- Prefer current Microsoft Creator documentation and versioned references on `bedrock.dev`. For Script API, also use `https://jaylydev.github.io/scriptapi-docs/latest/`. Use `wiki.bedrock.dev` for established concepts and proven implementation patterns. Confirm stable versus preview status and the target Minecraft version.
+- For other external libraries, frameworks, SDKs, APIs, and CLI tools, verify current official documentation before relying on unfamiliar or version-sensitive behavior.
 
 ## Verification
 
-- Use the fastest existing check that can fail for the change. Verification is proportional, not a ritual.
-- For TypeScript source changes, run the configured `typecheck` script when present. For JavaScript source changes, run the configured `check` script when present.
-- For runtime or gameplay behavior, use the smallest practical smoke or reproduction step. For BP/RP JSON, use the project's configured parser or schema validator when available.
-- Run existing tests only when they cover the changed area. Prefer the narrowest relevant test target.
-- Run the full test suite only when the user asks or an existing repository policy explicitly requires it.
-- **Do not create new test files or test cases unless the user explicitly requests tests or an existing repository policy requires them.** Never invent `*.test.*` files, assertion scripts, demos, fixtures, snapshots, or a test framework solely to prove completion.
-- If behavior intentionally changes, update existing assertions only as needed to match the requested contract; do not expand coverage by default.
-- Do not install or configure testing, linting, or formatting tools just to complete a task.
-- If no relevant check exists or the environment cannot run it, state that plainly. Do not manufacture a substitute or claim unrun checks passed.
-- Report the exact verification command or observed smoke result. Distinguish new failures from pre-existing failures.
+- After TypeScript changes, run `tsc --noEmit`.
+- For JavaScript, run the project's configured `npm run typecheck` or `npm run check` script when present.
+- Do not create or run tests unless the user asks or an existing repository policy explicitly requires them.
+- If the relevant command is unavailable or fails for a pre-existing reason, state that plainly.
 
 ## Code rules
 
@@ -47,9 +42,8 @@
 ## Minecraft Bedrock conventions
 
 - Check entity validity, optional components, and unloaded blocks with guards before use.
-- When already installed, prefer `@minecraft/vanilla-data` typed identifiers over raw component, entity, block, item, and effect strings.
-- When already installed, check `@minecraft/math` before writing vector, matrix, clamp, lerp, or similar math helpers.
-- Do not add either package solely to satisfy these preferences.
+- Prefer `@minecraft/vanilla-data` typed identifiers over raw component, entity, block, item, and effect strings.
+- Check `@minecraft/math` before writing vector, matrix, clamp, lerp, or similar math helpers.
 - Validate changed BP/RP JSON against the project's configured Bedrock schemas when available.
 - In Regolith projects, inspect compilation output through `.regolith/tmp` without resolving its symlinks.
 
